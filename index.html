@@ -3,70 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>艺愈系简洁阅读器</title>
+    <title>艺愈系简洁阅读器 WPS风格</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{transition: all 0.3s ease;display:flex;flex-direction:column;height:100vh;font-family: "微软雅黑",sans-serif;}
+        body{transition: all 0.3s ease;display:flex;flex-direction:column;height:100vh;font-family: "微软雅黑",sans-serif;background:#f5f6f7;}
         .header{
-            background:#6c5ce7;
-            color:#fff;
+            background:#FFFFFF;
+            color:#333;
             text-align:center;
-            padding:12px;
-            font-size:18px;
+            padding:14px;
+            font-size:20px;
             font-weight:bold;
+            border-bottom:1px solid #e0e0e0;
+            box-shadow:0 1px 3px rgba(0,0,0,0.05);
         }
         .main-body{display:flex;flex:1;overflow:hidden;}
         .main-wrap{flex:1;display:flex;flex-direction:column;}
         .toolbar{
-            background: #f8f9fa;
-            padding:10px;
+            background:#FFFFFF;
+            padding:12px;
             display:flex;
-            gap:6px;
+            gap:8px;
             flex-wrap:wrap;
             justify-content:center;
             align-items:center;
-            border-bottom:1px solid #ddd;
+            border-bottom:1px solid #e0e0e0;
         }
-        .stat-bar{
-            background:#eef5ff;
-            padding:6px 15px;
-            text-align:center;
-            font-size:14px;
-            color:#222;
-        }
-        .search-box{padding:8px;background:#f5f5f5;display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
         button{
-            padding:6px 10px;
+            padding:7px 12px;
             border:none;
-            border-radius:5px;
-            background:#6c5ce7;
+            border-radius:6px;
+            background:#2E86AB;
             color:white;
             cursor:pointer;
             font-size:13px;
+            font-weight:500;
+            transition:background 0.2s ease;
         }
-        button:hover{opacity:0.9;}
-        select,input{padding:5px;border-radius:4px;border:1px solid #ccc;font-size:13px;}
+        button:hover{background:#257196;}
+        .stat-bar{
+            background:#f0f4f8;
+            padding:6px 15px;
+            text-align:center;
+            font-size:14px;
+            color:#333;
+            border-bottom:1px solid #e0e0e0;
+        }
+        .search-box{padding:8px;background:#f0f4f8;display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-bottom:1px solid #e0e0e0;}
+        select,input{padding:6px;border-radius:5px;border:1px solid #ccc;font-size:13px;background:#fff;}
         #fileInput{display:none;}
         .read-box{
             flex:1;
-            margin:10px;
-            padding:20px;
+            margin:15px;
+            padding:25px;
             line-height:2;
             overflow-y:auto;
-            border-radius:10px;
+            border-radius:12px;
             white-space:pre-wrap;
             user-select:text;
             outline:none;
+            background:#FFFFFF;
+            box-shadow:0 2px 8px rgba(0,0,0.08);
         }
         .trans-panel{
             width:460px;
             height:100vh;
-            border-left:1px solid #ccc;
+            border-left:1px solid #e0e0e0;
             padding:15px;
             display:flex;
             flex-direction:column;
-            background:#fdfdfd;
+            background:#FFFFFF;
         }
         .trans-result{
             flex:1;
@@ -74,6 +81,8 @@
             padding:15px;
             overflow-y:auto;
             line-height:1.8;
+            border-radius:8px;
+            background:#fafafa;
         }
         .pair-block{
             margin:10px 0;
@@ -81,13 +90,13 @@
             border-bottom:1px dotted #eee;
         }
         .orig{margin-bottom:8px;font-weight:500;}
-        .trans{color:#0055cc;}
-        .light{background:#ffffff;color:#333;}
+        .trans{color:#2E86AB;}
+        .light{background:#f5f6f7;color:#333;}
         .dark{background:#121212;color:#eee;}
     </style>
 </head>
 <body class="light">
-<div class="header">艺愈系简洁阅读器</div>
+<div class="header">艺愈系简洁阅读器 WPS风格</div>
 <div class="main-body">
     <div class="main-wrap">
         <div class="toolbar">
@@ -116,7 +125,7 @@
 
             <select id="fontSelect"></select>
             <input type="color" id="textColor" title="字体颜色">
-            <input type="file" id="fileInput" accept=".txt,.docx">
+            <input type="file" id="fileInput" accept=".wps,.docx,.txt">
         </div>
 
         <div class="search-box">
@@ -129,8 +138,11 @@
         <div class="stat-bar">全文总字数：<span id="wordCount">0</span> 字</div>
 
         <div class="read-box" id="reader" contenteditable="false">
-欢迎使用艺愈系简洁阅读器
-支持Word(.docx)、TXT，不乱码、翻译正常。
+欢迎使用艺愈系简洁阅读器 WPS风格
+支持WPS(.wps)、Word(.docx)、TXT文档
+仿WPS界面，简洁清爽
+公网稳定翻译，对照显示
+字体/颜色/排版自定义
         </div>
     </div>
 
@@ -167,15 +179,14 @@ function countWord() {
     wordCountDom.innerText = text.length;
 }
 
-// 完美支持Word(.docx) + TXT不乱码
+// 支持WPS(.wps)、Word(.docx)、TXT，不乱码
 document.getElementById('fileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
     const name = file.name.toLowerCase();
     const readerFile = new FileReader();
 
-    // Word .docx
-    if (name.endsWith(".docx")) {
+    if (name.endsWith(".wps") || name.endsWith(".docx")) {
         readerFile.readAsArrayBuffer(file);
         readerFile.onload = function (ev) {
             mammoth.extractRawText({ arrayBuffer: ev.target.result })
@@ -184,11 +195,9 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
                     applyColor();
                     countWord();
                 })
-                .catch(() => reader.innerText = "Word解析失败");
+                .catch(() => reader.innerText = "文档解析失败，请检查文件格式");
         };
-    }
-    // TXT
-    else {
+    } else {
         readerFile.readAsArrayBuffer(file);
         readerFile.onload = function (ev) {
             const buf = new Uint8Array(ev.target.result);
@@ -238,7 +247,7 @@ function checkErrorWords() {
         "决对":"绝对","以经":"已经","在次":"再次","到至":"导致",
         "气份":"气氛","烦脑":"烦恼","座下":"坐下"
     };
-    for (let k in fix) text = text.replaceAll(k, fix[k]);
+    for (let k in fix) text = text.replaceAll(k, fix);
     reader.innerText = text;
     applyColor();
     countWord();
