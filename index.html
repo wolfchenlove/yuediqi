@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>艺愈系简洁阅读器</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{transition: all 0.3s ease;display:flex;flex-direction:column;height:100vh;font-family: "微软雅黑",sans-serif;}
@@ -115,7 +116,7 @@
 
             <select id="fontSelect"></select>
             <input type="color" id="textColor" title="字体颜色">
-            <input type="file" id="fileInput" accept=".txt">
+            <input type="file" id="fileInput" accept=".txt,.docx">
         </div>
 
         <div class="search-box">
@@ -129,7 +130,7 @@
 
         <div class="read-box" id="reader" contenteditable="false">
 欢迎使用艺愈系简洁阅读器
-已修复乱码问题，支持UTF-8/GBK/GB2312编码文件。
+支持Word(.docx)、TXT，不乱码、翻译正常。
         </div>
     </div>
 
@@ -166,33 +167,42 @@ function countWord() {
     wordCountDom.innerText = text.length;
 }
 
-// 核心修复：多编码自动读取，彻底解决乱码
+// 完美支持Word(.docx) + TXT不乱码
 document.getElementById('fileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
+    const name = file.name.toLowerCase();
     const readerFile = new FileReader();
-    readerFile.onload = function(ev) {
-        const arrayBuffer = ev.target.result;
-        const uint8Array = new Uint8Array(arrayBuffer);
-        
-        // 先尝试UTF-8
-        let text = "";
-        try {
-            text = new TextDecoder("utf-8", { fatal: true }).decode(uint8Array);
-        } catch (e) {
-            // UTF-8失败，尝试GBK
+
+    // Word .docx
+    if (name.endsWith(".docx")) {
+        readerFile.readAsArrayBuffer(file);
+        readerFile.onload = function (ev) {
+            mammoth.extractRawText({ arrayBuffer: ev.target.result })
+                .then(res => {
+                    reader.innerText = res.value;
+                    applyColor();
+                    countWord();
+                })
+                .catch(() => reader.innerText = "Word解析失败");
+        };
+    }
+    // TXT
+    else {
+        readerFile.readAsArrayBuffer(file);
+        readerFile.onload = function (ev) {
+            const buf = new Uint8Array(ev.target.result);
+            let t;
             try {
-                text = new TextDecoder("gbk").decode(uint8Array);
-            } catch (e2) {
-                text = "文件读取失败：编码不支持";
+                t = new TextDecoder("utf-8", { fatal: true }).decode(buf);
+            } catch (e) {
+                t = new TextDecoder("gbk").decode(buf);
             }
-        }
-        
-        reader.innerText = text;
-        applyColor();
-        countWord();
-    };
-    readerFile.readAsArrayBuffer(file);
+            reader.innerText = t;
+            applyColor();
+            countWord();
+        };
+    }
 });
 
 function exportText() {
