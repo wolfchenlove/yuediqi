@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#2E86AB">
-    <title>艺愈阅读器 纯净版</title>
+    <title>艺愈阅读器 </title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -15,6 +15,7 @@
             overflow:hidden;
             -webkit-font-smoothing:antialiased;
         }
+        /* 3个护眼背景（阅读区直接继承，无外框） */
         body.bg-white{background:#f9f9f9;color:#333;}
         body.bg-green{background:#e6f5e6;color:#333;}
         body.bg-blue{background:#e6f2f8;color:#333;}
@@ -48,8 +49,7 @@
             overflow:hidden;
             min-height:0;
         }
-
-        /* 两行按钮核心优化 */
+        /* 两行按钮 */
         .tool-row{
             background:#fff;
             padding:8px;
@@ -80,7 +80,6 @@
         .btn .icon{font-size:19px;margin-bottom:2px;}
         .btn-green{background:#e6f7ef;color:#27ae60;}
         .btn-green:active{background:#d0f0e0;}
-
         .select-box{
             height:42px;
             padding:0 8px;
@@ -110,7 +109,6 @@
         .bg1{background:#f9f9f9;}
         .bg2{background:#e6f5e6;}
         .bg3{background:#e6f2f8;}
-
         .search-box{
             padding:8px;
             background:#f0f4f8;
@@ -135,7 +133,6 @@
             border:none;
             color:#2E86AB;
         }
-
         .stat-bar{
             padding:6px;
             text-align:center;
@@ -143,13 +140,10 @@
             color:#666;
             background:#f0f4f8;
         }
-
+        /* 阅读区：无外框、全色背景、顺滑滚动 */
         .read-box{
             flex:1;
-            margin:8px;
             padding:16px;
-            background:#fff;
-            border-radius:16px;
             line-height:2.2;
             font-size:17px;
             white-space:pre-wrap;
@@ -159,26 +153,21 @@
             -webkit-overflow-scrolling:touch;
             touch-action:pan-y;
             min-height:0;
-            box-shadow:0 2px 8px rgba(0,0,0,0.05);
+            background:transparent !important;
         }
-
         /* 深色模式 */
         .dark{background:#121212 !important;color:#e0e0e0;}
         .dark .header,.dark .tool-row,.dark .search-box,.dark .stat-bar{
             background:#1e1e1e !important; border-color:#333;
         }
-        .dark .read-box{background:#1e1e1e !important; box-shadow:none;}
         .dark .btn{background:#2a2a2a;color:#81bfff;}
         .dark .btn-green{background:#1f4032;color:#5aff8a;}
         .dark input,.dark select{background:#2a2a2a;color:#fff;border-color:#444;}
-
         #fileInput{display:none;}
     </style>
 </head>
 <body class="bg-white">
-
-<div class="header">艺愈阅读器</div>
-
+<div class="header">欢迎关注《艺愈系》公众号</div>
 <div class="main-body">
     <div class="main-wrap">
         <!-- 第一行按钮 -->
@@ -189,7 +178,7 @@
             </button>
             <button class="btn btn-green" onclick="exportTxt()">
                 <span class="icon">💾</span>
-                <span>导出</span>
+                <span>保存</span>
             </button>
             <button class="btn" onclick="fontUp()">
                 <span class="icon">A+</span>
@@ -204,7 +193,6 @@
                 <span>深色</span>
             </button>
         </div>
-
         <!-- 第二行按钮 -->
         <div class="tool-row">
             <button class="btn" onclick="alignLeft()"><span class="icon">⬅</span><span>左</span></button>
@@ -212,44 +200,39 @@
             <button class="btn" onclick="alignRight()"><span class="icon">➡</span><span>右</span></button>
             <button class="btn" onclick="checkErrorWords()"><span class="icon">✓</span><span>纠错</span></button>
             <button class="btn" onclick="switchEdit()"><span class="icon">✏</span><span>编辑</span></button>
-
             <select id="fontSelect" class="select-box"></select>
             <input type="color" id="textColor" class="color-input">
-
             <div class="bg-group">
                 <button class="bg-dot bg1" onclick="setBg('bg-white')"></button>
                 <button class="bg-dot bg2" onclick="setBg('bg-green')"></button>
                 <button class="bg-dot bg3" onclick="setBg('bg-blue')"></button>
             </div>
         </div>
-
         <div class="search-box">
             <input type="text" id="findVal" placeholder="查找">
             <input type="text" id="replaceVal" placeholder="替换">
             <button class="search-btn" onclick="findText()">🔍</button>
             <button class="search-btn" onclick="replaceAll()">🔄</button>
         </div>
-
         <div class="stat-bar">字数：<span id="wordCount">0</span></div>
-
+        <!-- 无框阅读区 -->
         <div class="read-box" id="reader" contenteditable="false">
 欢迎使用艺愈阅读器
-✅ 两行按钮布局
-✅ 安卓/苹果完美导出
+✅ 无框全屏阅读
+✅ 安卓本地保存（WPS可打开）
+✅ 安卓/苹果全字体生效
 ✅ 3种护眼背景
-✅ 字体/颜色自由切换
+✅ 顺滑上下滑动
         </div>
     </div>
 </div>
-
 <input type="file" id="fileInput" accept=".wps,.docx,.txt">
-
 <script>
-const fonts = ["系统默认","思源黑体","苹方","Roboto","黑体","无衬线体","宋体","楷体"];
+// 安卓/苹果全生效字体
+const fonts = ["系统默认","思源黑体","苹方","Roboto","黑体","宋体","楷体","无衬线体"];
 const reader = document.getElementById("reader");
 const fontSel = document.getElementById("fontSelect");
 const wordCountDom = document.getElementById("wordCount");
-
 let fontSize = 17;
 let darkMode = false;
 let editStatus = false;
@@ -263,6 +246,7 @@ fonts.forEach(f => {
     fontSel.appendChild(opt);
 });
 
+// 字体映射（安卓/苹果100%生效）
 fontSel.onchange = () => {
     const v = fontSel.value;
     let ff = "sans-serif";
@@ -272,6 +256,7 @@ fontSel.onchange = () => {
     else if(v === "黑体") ff = '"Helvetica Neue",sans-serif';
     else if(v === "宋体") ff = '"SimSun",serif';
     else if(v === "楷体") ff = '"KaiTi",serif';
+    else if(v === "无衬线体") ff = "sans-serif";
     reader.style.fontFamily = ff;
 };
 
@@ -280,12 +265,10 @@ function countWord(){
     const t = reader.innerText.replace(/\s/g,"");
     wordCountDom.innerText = t.length;
 }
-
 function setBg(cls){
     currentBg = cls;
     document.body.className = cls + (darkMode ? " dark" : "");
 }
-
 function openFile(){ document.getElementById("fileInput").click(); }
 
 document.getElementById('fileInput').addEventListener('change', e => {
@@ -293,7 +276,6 @@ document.getElementById('fileInput').addEventListener('change', e => {
     if(!file) return;
     const name = file.name.toLowerCase();
     const fr = new FileReader();
-
     if(name.endsWith(".wps") || name.endsWith(".docx")){
         fr.readAsArrayBuffer(file);
         fr.onload = ev => {
@@ -316,7 +298,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
     }
 });
 
-// 安卓100%可导出
+// 安卓本地保存txt（WPS可直接打开）
 function exportTxt(){
     const blob = new Blob([reader.innerText], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -326,7 +308,7 @@ function exportTxt(){
     a.click();
     document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-    alert("导出成功！WPS 可直接打开");
+    alert("✅ 已保存到本地！WPS可直接打开");
 }
 
 function alignLeft(){reader.style.textAlign="left";}
@@ -344,15 +326,12 @@ function toggleDark(){
 function switchEdit(){
     editStatus = !editStatus;
     reader.contentEditable = editStatus;
-    alert(editStatus ? "已开启编辑" : "已关闭编辑");
+    alert(editStatus ? "✅ 已开启编辑" : "❌ 已关闭编辑");
 }
 
 function checkErrorWords(){
     let text = reader.innerText;
-    const fix = {
-        "即然":"既然","既使":"即使","渡过":"度过","年青":"年轻",
-        "决对":"绝对","以经":"已经","在次":"再次","到至":"导致"
-    };
+    const fix = {"即然":"既然","既使":"即使","渡过":"度过","年青":"年轻","决对":"绝对","以经":"已经","在次":"再次","到至":"导致"};
     let cnt = 0;
     for(let k in fix){
         const reg = new RegExp(k,"g");
@@ -362,7 +341,7 @@ function checkErrorWords(){
     }
     reader.innerText = text;
     applyColor(); countWord();
-    alert(`修正 ${cnt} 处`);
+    alert(`✅ 修正 ${cnt} 处错别字`);
 }
 
 function findText(){
@@ -372,7 +351,7 @@ function findText(){
     const text = reader.innerText;
     if(text.match(reg)){
         reader.innerHTML = text.replace(reg,`<span style="background:#ffeb3b;color:#000">${k}</span>`);
-    } else alert("未找到");
+    } else alert("未找到匹配内容");
 }
 
 function replaceAll(){
@@ -382,7 +361,7 @@ function replaceAll(){
     const reg = new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");
     reader.innerText = reader.innerText.replace(reg, r);
     applyColor(); countWord();
-    alert("替换完成");
+    alert("✅ 替换完成");
 }
 
 document.getElementById('textColor').onchange = () => {
