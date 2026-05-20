@@ -9,56 +9,65 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
-        body{transition: all 0.3s ease;display:flex;flex-direction:column;height:100vh;font-family: "微软雅黑",sans-serif;background:#f5f6f7;}
+        html,body{
+            height:100%;
+            overflow:hidden;
+            font-family:"微软雅黑",sans-serif;
+            background:#f5f6f7;
+        }
+        body{
+            display:flex;
+            flex-direction:column;
+            transition:all 0.3s ease;
+        }
         .header{
-            background:#FFFFFF;
+            background:#fff;
             color:#333;
             text-align:center;
             padding:12px 8px;
             font-size:18px;
             font-weight:bold;
             border-bottom:1px solid #e0e0e0;
-            box-shadow:0 1px 3px rgba(0,0,0,0.05);
-            position:sticky;
-            top:0;
-            z-index:100;
+            z-index:10;
         }
-        .main-body{display:flex;flex:1;overflow:hidden;flex-direction:column;}
-        .main-wrap{flex:1;display:flex;flex-direction:column;}
+        .main-body{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+        }
+        .main-wrap{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+        }
         .toolbar{
-            background:#FFFFFF;
+            background:#fff;
             padding:8px;
             display:flex;
             gap:6px;
-            flex-wrap:wrap;
-            justify-content:center;
-            align-items:center;
-            border-bottom:1px solid #e0e0e0;
+            flex-wrap:nowrap;
             overflow-x:auto;
             -webkit-overflow-scrolling:touch;
-            scrollbar-width:none;
+            border-bottom:1px solid #e0e0e0;
         }
         .toolbar::-webkit-scrollbar{display:none;}
         button{
-            padding:8px 14px;
+            padding:8px 12px;
             border:none;
             border-radius:8px;
             background:#2E86AB;
-            color:white;
-            cursor:pointer;
+            color:#fff;
             font-size:14px;
-            font-weight:500;
-            transition:background 0.2s ease;
             flex-shrink:0;
         }
-        button:hover{background:#257196;}
         button:active{background:#1e5d7c;}
         .stat-bar{
             background:#f0f4f8;
-            padding:6px 10px;
+            padding:6px;
             text-align:center;
             font-size:13px;
-            color:#333;
             border-bottom:1px solid #e0e0e0;
         }
         .search-box{
@@ -67,7 +76,6 @@
             display:flex;
             gap:6px;
             flex-wrap:wrap;
-            align-items:center;
             border-bottom:1px solid #e0e0e0;
         }
         select,input{
@@ -75,105 +83,88 @@
             border-radius:6px;
             border:1px solid #ccc;
             font-size:14px;
-            background:#fff;
             flex:1;
             min-width:120px;
         }
         #fileInput{display:none;}
+
+        /* 核心：阅读区可正常上下滑动 */
         .read-box{
             flex:1;
             margin:8px;
-            padding:20px 15px;
-            line-height:2;
-            overflow-y:auto;
+            padding:15px;
+            background:#fff;
             border-radius:12px;
+            line-height:2;
             white-space:pre-wrap;
             user-select:text;
-            outline:none;
-            background:#FFFFFF;
-            box-shadow:0 2px 8px rgba(0,0,0,0.08);
-            font-size:17px;
+            overflow-y:auto;
             -webkit-overflow-scrolling:touch;
+            outline:none;
         }
-        /* 翻译面板适配手机 */
+
+        /* 翻译面板：底部折叠，不抢滚动 */
         .trans-panel{
             width:100%;
-            max-height:40vh;
+            max-height:0;
+            transition:max-height 0.3s ease;
+            background:#fff;
             border-top:1px solid #e0e0e0;
-            padding:12px;
             display:flex;
             flex-direction:column;
-            background:#FFFFFF;
-            transition:max-height 0.3s ease;
+            overflow:hidden;
         }
-        .trans-toggle{
-            position:fixed;
-            bottom:20px;
-            right:20px;
-            width:50px;
-            height:50px;
-            border-radius:50%;
-            background:#2E86AB;
-            color:white;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            box-shadow:0 2px 10px rgba(0,0,0,0.2);
-            z-index:99;
-            font-size:20px;
+        .trans-panel.open{
+            max-height:40vh;
+        }
+        .trans-head{
+            padding:8px 12px;
+            font-weight:bold;
         }
         .trans-result{
             flex:1;
-            border:1px solid #ddd;
+            margin:0 12px 12px;
             padding:12px;
-            overflow-y:auto;
-            line-height:1.8;
+            border:1px solid #ddd;
             border-radius:8px;
             background:#fafafa;
+            overflow-y:auto;
             -webkit-overflow-scrolling:touch;
         }
-        .pair-block{
-            margin:8px 0;
-            padding:8px;
-            border-bottom:1px dotted #eee;
+        .trans-toggle{
+            position:fixed;
+            bottom:16px;
+            right:16px;
+            width:48px;
+            height:48px;
+            border-radius:50%;
+            background:#2E86AB;
+            color:#fff;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:20px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.2);
+            z-index:20;
         }
-        .orig{margin-bottom:6px;font-weight:500;font-size:14px;}
-        .trans{color:#2E86AB;font-size:14px;}
+
+        .pair-block{margin:8px 0;padding:8px;border-bottom:1px dotted #eee;}
+        .orig{margin-bottom:6px;}
+        .trans{color:#2E86AB;}
+
         .light{background:#f5f6f7;color:#333;}
         .dark{background:#121212;color:#eee;}
-        .dark .read-box{background:#1e1e1e;color:#eee;}
-        .dark .trans-panel{background:#1e1e1e;border-top-color:#333;}
+        .dark .header,.dark .toolbar,.dark .stat-bar,.dark .search-box,.dark .trans-panel{background:#1e1e1e;border-color:#333;}
+        .dark .read-box{background:#1e1e1e;}
         .dark .trans-result{background:#2d2d2d;border-color:#444;}
-        .dark .toolbar, .dark .header, .dark .stat-bar, .dark .search-box{background:#1e1e1e;border-color:#333;color:#eee;}
-        .dark input, .dark select, .dark button{background:#2d2d2d;border-color:#444;color:#eee;}
-        .loading {
-            color: #999;
-            font-style: italic;
-        }
-        .error {
-            color: #e74c3c;
-        }
-        /* 加载动画优化 */
-        @keyframes spin {
-            0% {transform: rotate(0deg);}
-            100% {transform: rotate(360deg);}
-        }
-        .loading::after{
-            content:"";
-            display:inline-block;
-            width:12px;
-            height:12px;
-            border:2px solid #999;
-            border-top-color:transparent;
-            border-radius:50%;
-            animation:spin 1s linear infinite;
-            margin-left:8px;
-            vertical-align:middle;
-        }
+
+        .loading{color:#999;font-style:italic;}
+        .error{color:#e74c3c;}
     </style>
 </head>
 <body class="light">
 <div class="header">艺愈系简洁阅读器 手机版</div>
+
 <div class="main-body">
     <div class="main-wrap">
         <div class="toolbar">
@@ -185,9 +176,8 @@
             <button onclick="alignLeft()">左对齐</button>
             <button onclick="alignCenter()">居中</button>
             <button onclick="alignRight()">右对齐</button>
-            <button onclick="checkErrorWords()">错别字修正</button>
-            <button onclick="switchEdit()">编辑模式</button>
-
+            <button onclick="checkErrorWords()">错别字</button>
+            <button onclick="switchEdit()">编辑</button>
             <select id="fullTransLang">
                 <option value="zh">中文</option>
                 <option value="en">英语</option>
@@ -199,7 +189,6 @@
                 <option value="ar">阿拉伯语</option>
             </select>
             <button onclick="fullTranslate()" style="background:#27ae60;">全文翻译</button>
-
             <select id="fontSelect"></select>
             <input type="color" id="textColor" title="字体颜色">
             <input type="file" id="fileInput" accept=".wps,.docx,.txt">
@@ -223,17 +212,13 @@
         </div>
     </div>
 
-    <!-- 翻译面板 - 手机端可折叠 -->
     <div class="trans-panel" id="transPanel">
-        <div style="font-weight:bold;margin-bottom:8px;font-size:16px;">原文 ↓ 译文对照</div>
+        <div class="trans-head">原文 ↓ 译文对照</div>
         <div class="trans-result" id="transResult">翻译结果将在此显示</div>
     </div>
-    
-    <!-- 翻译面板折叠/展开按钮 -->
-    <div class="trans-toggle" onclick="toggleTransPanel()">
-        &#8595;
-    </div>
 </div>
+
+<div class="trans-toggle" id="transToggleBtn" onclick="toggleTransPanel()">↑</div>
 
 <script>
 const fonts = ["微软雅黑","宋体","黑体","楷体","隶书","幼圆","仿宋"];
@@ -242,354 +227,209 @@ const fontSel = document.getElementById("fontSelect");
 const wordCountDom = document.getElementById("wordCount");
 const transResult = document.getElementById("transResult");
 const transPanel = document.getElementById("transPanel");
+const transToggleBtn = document.getElementById("transToggleBtn");
+
 let fontSize = 17;
 let darkMode = false;
 let editStatus = false;
 let textColor = "#333";
-let transPanelShow = true;
 
-// 语言映射（适配新翻译接口）
 const langMap = {
-    "zh": "zh",
-    "en": "en",
-    "ja": "ja",
-    "ko": "ko",
-    "ru": "ru",
-    "fr": "fr",
-    "pt": "pt",
-    "ar": "ar"
+    "zh":"zh","en":"en","ja":"ja","ko":"ko",
+    "ru":"ru","fr":"fr","pt":"pt","ar":"ar"
 };
 
-// 初始化字体选择器
-fonts.forEach(f => {
-    let opt = document.createElement("option");
-    opt.value = f;
-    opt.innerText = f;
+fonts.forEach(f=>{
+    const opt = document.createElement("option");
+    opt.value = f; opt.innerText = f;
     fontSel.appendChild(opt);
 });
 
-// 应用字体颜色
-function applyColor() {
-    reader.style.color = textColor;
-}
-
-// 字数统计
-function countWord() {
-    let text = reader.innerText.replace(/\s/g, "");
+function applyColor(){ reader.style.color = textColor; }
+function countWord(){
+    const text = reader.innerText.replace(/\s/g,"");
     wordCountDom.innerText = text.length;
 }
 
-// 适配手机端的文件读取（支持更多编码）
-document.getElementById('fileInput').addEventListener('change', function (e) {
-    const file = e.target.files[0];
-    if (!file) return;
+// 文件读取
+document.getElementById('fileInput').addEventListener('change',e=>{
+    const file = e.target.files[0]; if(!file) return;
     const name = file.name.toLowerCase();
-    const readerFile = new FileReader();
-
-    if (name.endsWith(".wps") || name.endsWith(".docx")) {
-        readerFile.readAsArrayBuffer(file);
-        readerFile.onload = function (ev) {
-            mammoth.extractRawText({ arrayBuffer: ev.target.result })
-                .then(res => {
-                    reader.innerText = res.value;
-                    applyColor();
-                    countWord();
-                    alert("文档加载成功");
-                })
-                .catch(() => reader.innerText = "文档解析失败，请检查文件格式");
+    const fr = new FileReader();
+    if(name.endsWith(".wps")||name.endsWith(".docx")){
+        fr.readAsArrayBuffer(file);
+        fr.onload=ev=>{
+            mammoth.extractRawText({arrayBuffer:ev.target.result})
+            .then(res=>{
+                reader.innerText=res.value;
+                applyColor(); countWord();
+            })
+            .catch(()=>reader.innerText="文档解析失败");
         };
-    } else {
-        readerFile.readAsArrayBuffer(file);
-        readerFile.onload = function (ev) {
-            const buf = new Uint8Array(ev.target.result);
+    }else{
+        fr.readAsArrayBuffer(file);
+        fr.onload=ev=>{
+            const buf=new Uint8Array(ev.target.result);
             let t;
-            try {
-                t = new TextDecoder("utf-8", { fatal: true }).decode(buf);
-            } catch (e) {
-                try {
-                    t = new TextDecoder("gbk").decode(buf);
-                } catch (e2) {
-                    t = new TextDecoder("gb2312").decode(buf);
-                }
-            }
-            reader.innerText = t;
-            applyColor();
-            countWord();
-            alert("文档加载成功");
+            try{t=new TextDecoder("utf-8",{fatal:true}).decode(buf);}
+            catch{e=>{
+                try{t=new TextDecoder("gbk").decode(buf);}
+                catch{e2=>t=new TextDecoder("gb2312").decode(buf);}
+            }}
+            reader.innerText=t;
+            applyColor(); countWord();
         };
     }
 });
 
-// 导出文本（适配手机下载）
-function exportText() {
-    const blob = new Blob([reader.innerText], { type: "text/plain;charset=utf-8" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "艺愈阅读器文稿_" + new Date().getTime() + ".txt";
+function exportText(){
+    const blob=new Blob([reader.innerText],{type:"text/plain;charset=utf-8"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download="艺愈阅读器文稿.txt";
     a.click();
-    // 释放URL对象
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
-// 文本对齐
-function alignLeft() { reader.style.textAlign = "left"; }
-function alignCenter() { reader.style.textAlign = "center"; }
-function alignRight() { reader.style.textAlign = "right"; }
+function alignLeft(){reader.style.textAlign="left";}
+function alignCenter(){reader.style.textAlign="center";}
+function alignRight(){reader.style.textAlign="right";}
 
-// 字体大小调整
-function fontUp() { 
-    if (fontSize < 40) {
-        fontSize++; 
-        reader.style.fontSize = fontSize + "px";
-    }
-}
-function fontDown() { 
-    if (fontSize > 12) {
-        fontSize--; 
-        reader.style.fontSize = fontSize + "px";
-    }
-}
+function fontUp(){if(fontSize<40) fontSize++; reader.style.fontSize=fontSize+"px";}
+function fontDown(){if(fontSize>12) fontSize--; reader.style.fontSize=fontSize+"px";}
 
-// 昼夜模式切换
-function toggleDark() {
-    darkMode = !darkMode;
-    document.body.className = darkMode ? "dark" : "light";
-    // 同步更新翻译面板样式
+function toggleDark(){
+    darkMode=!darkMode;
+    document.body.className=darkMode?"dark":"light";
     applyColor();
 }
 
-// 编辑模式切换
-function switchEdit() {
-    editStatus = !editStatus;
-    reader.contentEditable = editStatus;
-    alert(editStatus ? "✅ 已开启编辑模式\n可直接修改文本内容" : "❌ 已关闭编辑模式");
+function switchEdit(){
+    editStatus=!editStatus;
+    reader.contentEditable=editStatus;
+    alert(editStatus?"已开启编辑":"已关闭编辑");
 }
 
-// 错别字修正
-function checkErrorWords() {
-    let text = reader.innerText;
-    const fix = {
+function checkErrorWords(){
+    let text=reader.innerText;
+    const fix={
         "即然":"既然","既使":"即使","渡过":"度过","年青":"年轻",
-        "决对":"绝对","以经":"已经","在次":"再次","到至":"导致",
-        "气份":"气氛","烦脑":"烦恼","座下":"坐下","象样":"像样",
-        "带价":"代价","松驰":"松弛","安祥":"安详","脉博":"脉搏"
+        "决对":"绝对","以经":"已经","在次":"再次","到至":"导致"
     };
-    let fixCount = 0;
-    for (let k in fix) {
-        const reg = new RegExp(k, "g");
-        const matches = text.match(reg);
-        if (matches) fixCount += matches.length;
-        text = text.replace(reg, fix[k]);
+    let cnt=0;
+    for(let k in fix){
+        const reg=new RegExp(k,"g");
+        const m=text.match(reg); if(m) cnt+=m.length;
+        text=text.replace(reg,fix[k]);
     }
-    reader.innerText = text;
-    applyColor();
-    countWord();
-    alert(`✅ 错别字修正完成\n共修正 ${fixCount} 处错误`);
+    reader.innerText=text;
+    applyColor(); countWord();
+    alert(`修正 ${cnt} 处`);
 }
 
-// 查找文本
-function findText() {
-    const key = document.getElementById("findVal").value.trim();
-    if (!key) return alert("请输入查找内容");
-    // 保留换行和格式的查找
-    const text = reader.innerText;
-    const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
-    if (text.match(regex)) {
-        reader.innerHTML = text.replace(regex, `<span style="background:#ffeb3b;">${key}</span>`);
-        alert(`找到 ${(text.match(regex) || []).length} 处匹配内容`);
-    } else {
-        alert("未找到匹配内容");
-    }
+function findText(){
+    const k=document.getElementById("findVal").value.trim();
+    if(!k) return alert("请输入查找内容");
+    const reg=new RegExp(k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");
+    const text=reader.innerText;
+    if(text.match(reg)){
+        reader.innerHTML=text.replace(reg,`<span style="background:#ffeb3b;">${k}</span>`);
+        alert(`找到 ${(text.match(reg)||[]).length} 处`);
+    }else alert("未找到");
 }
 
-// 替换文本
-function replaceAll() {
-    const f = document.getElementById("findVal").value.trim();
-    const r = document.getElementById("replaceVal").value;
-    if (!f) return alert("请输入查找内容");
-    const text = reader.innerText;
-    const regex = new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "g");
-    const count = (text.match(regex) || []).length;
-    reader.innerText = text.replace(regex, r);
-    applyColor();
-    countWord();
-    alert(`✅ 替换完成\n共替换 ${count} 处内容`);
+function replaceAll(){
+    const f=document.getElementById("findVal").value.trim();
+    const r=document.getElementById("replaceVal").value;
+    if(!f) return alert("请输入查找内容");
+    const reg=new RegExp(f.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g");
+    const text=reader.innerText;
+    const cnt=(text.match(reg)||[]).length;
+    reader.innerText=text.replace(reg,r);
+    applyColor(); countWord();
+    alert(`替换 ${cnt} 处`);
 }
 
-// 字体选择
-fontSel.onchange = () => {
-    reader.style.fontFamily = fontSel.value;
-};
-
-// 字体颜色选择
-document.getElementById('textColor').onchange = () => {
-    textColor = document.getElementById('textColor').value;
+fontSel.onchange=()=>reader.style.fontFamily=fontSel.value;
+document.getElementById('textColor').onchange=()=>{
+    textColor=document.getElementById('textColor').value;
     applyColor();
 };
 
-// 翻译面板折叠/展开
-function toggleTransPanel() {
-    transPanelShow = !transPanelShow;
-    transPanel.style.maxHeight = transPanelShow ? "40vh" : "0px";
-    const toggleBtn = document.querySelector('.trans-toggle');
-    toggleBtn.innerHTML = transPanelShow ? '&#8595;' : '&#8593;';
+function toggleTransPanel(){
+    transPanel.classList.toggle("open");
+    transToggleBtn.innerText=transPanel.classList.contains("open")?"↓":"↑";
 }
 
-// 优化的翻译函数 - 适配手机网络
-async function translateText(text, targetLang) {
-    // 使用CORS代理解决跨域问题
-    const proxyUrl = "https://api.allorigins.win/raw?url=";
-    const apiUrl = "https://fanyi.volcengine.com/api/v1/translate";
-    
-    // 火山翻译请求参数
-    const params = {
-        text: text,
-        source_language: "auto",
-        target_language: targetLang
-    };
-
-    try {
-        // 重试机制：最多3次，适配手机网络波动
-        for (let i = 0; i < 3; i++) {
-            try {
-                const response = await fetch(proxyUrl + encodeURIComponent(apiUrl), {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Accept": "application/json"
-                    },
-                    body: JSON.stringify(params),
-                    timeout: 15000, // 手机端超时延长到15秒
-                    mode: "cors"
-                });
-
-                if (!response.ok) throw new Error(`HTTP错误 ${response.status}`);
-                
-                const data = await response.json();
-                if (data && data.translation) {
-                    return data.translation;
-                } else if (data && data.error) {
-                    throw new Error(data.error.message || "翻译接口返回错误");
-                }
-            } catch (e) {
-                if (i === 2) throw e;
-                await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-            }
+async function translateText(text,targetLang){
+    const proxy="https://api.allorigins.win/raw?url=";
+    const api="https://fanyi.volcengine.com/api/v1/translate";
+    const params={text,source_language:"auto",target_language:targetLang};
+    for(let i=0;i<3;i++){
+        try{
+            const res=await fetch(proxy+encodeURIComponent(api),{
+                method:"POST",
+                headers:{"Content-Type":"application/json"},
+                body:JSON.stringify(params)
+            });
+            const d=await res.json();
+            if(d&&d.translation) return d.translation;
+        }catch(e){
+            if(i===2) throw e;
+            await new Promise(r=>setTimeout(r,1000*(i+1)));
         }
-    } catch (error) {
-        console.error("翻译失败:", error);
-        // 降级方案：使用百度翻译简易版
-        try {
-            const baiduUrl = `https://fanyi.baidu.com/sug?kw=${encodeURIComponent(text)}`;
-            const res = await fetch(proxyUrl + encodeURIComponent(baiduUrl));
-            const data = await res.json();
-            if (data.data && data.data.length > 0) {
-                return data.data[0].v || text;
-            }
-        } catch (e) {
-            console.error("备用翻译接口也失败:", e);
-        }
-        throw new Error("翻译服务暂时不可用，请稍后再试");
     }
+    throw new Error("翻译失败");
 }
 
-// 全文对照翻译 - 手机优化版
-async function fullTranslate() {
-    const text = reader.innerText.trim();
-    if (!text) return alert("请先打开文档或输入文本");
-    
-    const targetLang = langMap[document.getElementById("fullTransLang").value] || "en";
-    transResult.innerHTML = '<div class="loading">翻译中...请稍候</div>';
-    // 展开翻译面板
-    transPanel.style.maxHeight = "40vh";
-    transPanelShow = true;
-    document.querySelector('.trans-toggle').innerHTML = '&#8595;';
+async function fullTranslate(){
+    const text=reader.innerText.trim();
+    if(!text) return alert("请先输入文本");
+    const targetLang=langMap[document.getElementById("fullTransLang").value]||"en";
+    transResult.innerHTML='<div class="loading">翻译中...</div>';
+    transPanel.classList.add("open");
+    transToggleBtn.innerText="↓";
 
-    // 优化手机端句子分割
-    const sentences = text.split(/([。！？；.!?;\n])/).filter(s => s.trim()).reduce((acc, curr) => {
-        if (acc.length === 0) return [curr];
-        const last = acc[acc.length - 1];
-        if (/[。！？；.!?;]/.test(last.slice(-1))) {
-            acc.push(curr);
-        } else {
-            acc[acc.length - 1] += curr;
-        }
-        return acc;
-    }, []);
+    const sentences=text.split(/([。！？；.!?;\n])/).filter(s=>s.trim()).reduce((a,c)=>{
+        if(a.length===0) return [c];
+        const last=a[a.length-1];
+        if(/[。！？；.!?;]/.test(last.slice(-1))) a.push(c);
+        else a[a.length-1]+=c;
+        return a;
+    },[]);
 
-    // 手机端分批翻译，避免卡顿
-    let html = "";
-    let successCount = 0;
-    const batchSize = 5; // 每次翻译5句
-    let currentIndex = 0;
+    let html="", ok=0;
+    const batch=5; let idx=0;
 
-    async function translateBatch() {
-        if (currentIndex >= sentences.length) {
-            // 翻译完成
-            transResult.innerHTML = html;
-            if (successCount < sentences.length) {
-                alert(`翻译完成，共${sentences.length}句，成功${successCount}句，失败${sentences.length - successCount}句`);
-            } else {
-                alert("✅ 翻译全部完成！");
-            }
+    async function run(){
+        if(idx>=sentences.length){
+            transResult.innerHTML=html;
+            alert(`完成：${sentences.length}句，成功${ok}句`);
             return;
         }
-
-        // 处理当前批次
-        const endIndex = Math.min(currentIndex + batchSize, sentences.length);
-        for (let i = currentIndex; i < endIndex; i++) {
-            const s = sentences[i].trim();
-            if (!s) continue;
-            
-            try {
-                const t = await translateText(s, targetLang);
-                html += `
-                <div class="pair-block">
-                    <div class="orig">${s}</div>
-                    <div class="trans">${t}</div>
-                </div>`;
-                successCount++;
-            } catch (e) {
-                html += `
-                <div class="pair-block">
-                    <div class="orig">${s}</div>
-                    <div class="trans error">${e.message}</div>
-                </div>`;
+        const end=Math.min(idx+batch,sentences.length);
+        for(let i=idx;i<end;i++){
+            const s=sentences[i].trim(); if(!s) continue;
+            try{
+                const t=await translateText(s,targetLang);
+                html+=`<div class="pair-block"><div class="orig">${s}</div><div class="trans">${t}</div></div>`;
+                ok++;
+            }catch(e){
+                html+=`<div class="pair-block"><div class="orig">${s}</div><div class="trans error">${e.message}</div></div>`;
             }
         }
-
-        // 更新进度
-        transResult.innerHTML = `
-            <div class="loading">进度：${endIndex}/${sentences.length} (成功: ${successCount})</div>
-            <br>${html}
-        `;
-
-        currentIndex = endIndex;
-        // 继续下一批次
-        setTimeout(translateBatch, 100);
+        transResult.innerHTML=`<div class="loading">进度 ${end}/${sentences.length}</div><br>${html}`;
+        idx=end;
+        setTimeout(run,100);
     }
-
-    // 开始分批翻译
-    translateBatch();
+    run();
 }
 
-// 页面加载初始化
-window.onload = () => {
+window.onload=()=>{
     applyColor();
     countWord();
-    // 适配手机屏幕旋转
-    window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-            reader.style.height = `${window.innerHeight - 200}px`;
-        }, 100);
-    });
+    reader.style.fontSize=fontSize+"px";
 };
-
-// 触摸事件优化（手机端长按复制）
-reader.addEventListener('touchstart', (e) => {
-    // 阻止默认行为避免冲突
-    e.stopPropagation();
-}, { passive: true });
 </script>
 </body>
 </html>
