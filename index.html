@@ -167,16 +167,33 @@ function countWord() {
     wordCountDom.innerText = text.length;
 }
 
+// 修复乱码：自动检测 UTF-8/GBK
 document.getElementById('fileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
     const readerFile = new FileReader();
-    readerFile.onload = ev => {
-        reader.innerText = ev.target.result;
+    readerFile.onload = function(ev) {
+        const array = new Uint8Array(ev.target.result);
+        // 简单编码判断
+        let isUTF8 = true;
+        for (let i = 0; i < array.length; i++) {
+            if (array[i] > 127) {
+                if ((array[i] & 0xE0) === 0xC0 && (array[i+1] & 0xC0) === 0x80) {
+                    i++;
+                } else {
+                    isUTF8 = false;
+                    break;
+                }
+            }
+        }
+        const text = isUTF8 
+            ? new TextDecoder("utf-8").decode(array)
+            : new TextDecoder("gbk").decode(array);
+        reader.innerText = text;
         applyColor();
         countWord();
     };
-    readerFile.readAsText(file, 'UTF-8');
+    readerFile.readAsArrayBuffer(file);
 });
 
 function exportText() {
@@ -222,8 +239,7 @@ function checkErrorWords() {
 function findText() {
     const key = document.getElementById("findVal").value.trim();
     if (!key) return alert("请输入查找内容");
-    let content = reader.innerText;
-    reader.innerHTML = content.replaceAll(key, `<span style="background:#ffeb3b;">${key}</span>`);
+    reader.innerHTML = reader.innerText.replaceAll(key, `<span style="background:#ffeb3b;">${key}</span>`);
 }
 
 function replaceAll() {
@@ -245,9 +261,7 @@ document.getElementById('textColor').onchange = () => {
     applyColor();
 };
 
-// ==============================================
-// 全网稳定翻译 · 直接可用 · 无跨域 · 无限制
-// ==============================================
+// 全网稳定翻译
 async function fullTranslate() {
     const text = reader.innerText.trim();
     if (!text) return alert("请先输入文本");
@@ -267,13 +281,11 @@ async function fullTranslate() {
             });
             const data = await res.json();
             const t = data.data || "翻译失败";
-
             html += `
             <div class="pair-block">
                 <div class="orig">${s}</div>
                 <div class="trans">${t}</div>
             </div>`;
-
         } catch (e) {
             html += `
             <div class="pair-block">
