@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>艺愈简洁阅读器</title>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{transition: all 0.3s ease;display:flex;height:100vh;}
+        .header{
+            background:#6c5ce7;
+            color:#fff;
+            text-align:center;
+            padding:10px;
+            font-size:18px;
+            font-weight:bold;
+        }
+        .main-wrap{flex:1;display:flex;flex-direction:column;}
+        .toolbar{
+            background: #f8f9fa;
+            padding:12px;
+            display:flex;
+            gap:6px;
+            flex-wrap:wrap;
+            justify-content:center;
+            align-items:center;
+            border-bottom:1px solid #ddd;
+        }
+        .stat-bar{
+            background:#eef5ff;
+            padding:6px 15px;
+            text-align:center;
+            font-size:14px;
+            color:#222;
+        }
+        .search-box{padding:8px;background:#f5f5f5;text-align:center;gap:8px;display:flex;justify-content:center;flex-wrap:wrap;}
+        button{
+            padding:7px 10px;
+            border:none;
+            border-radius:5px;
+            background:#6c5ce7;
+            color:white;
+            cursor:pointer;
+            font-size:13px;
+        }
+        button:hover{opacity:0.9;}
+        select,input{padding:5px;border-radius:4px;border:1px solid #ccc;font-size:13px;}
+        #fileInput{display:none;}
+        .read-box{
+            flex:1;
+            margin:10px;
+            padding:20px;
+            line-height:2;
+            overflow-y:auto;
+            border-radius:10px;
+            white-space:pre-wrap;
+            user-select:text;
+            outline:none;
+        }
+        .trans-panel{
+            width:450px;
+            height:100vh;
+            border-left:1px solid #ccc;
+            padding:15px;
+            display:flex;
+            flex-direction:column;
+            background:#fdfdfd;
+        }
+        .trans-result{
+            flex:1;
+            border:1px solid #ddd;
+            padding:15px;
+            overflow-y:auto;
+            line-height:1.8;
+        }
+        .pair-block{
+            margin:10px 0;
+            padding:10px;
+            border-bottom:1px dotted #eee;
+        }
+        .orig{margin-bottom:8px;font-weight:500;}
+        .trans{}
+        .highlight{background:#ffeb3b;color:#000;}
+        .current-highlight{background:#ff9800;color:#fff;}
+        .light{background:#ffffff;}
+        .dark{background:#121212;}
+    </style>
+</head>
+<body class="light">
+<div class="main-wrap">
+    <div class="header">艺愈系简洁阅读器</div>
+    <div class="toolbar">
+        <button onclick="document.getElementById('fileInput').click()">打开文档</button>
+        <button onclick="exportWord()">导出Word</button>
+        <button onclick="fontUp()">放大字体</button>
+        <button onclick="fontDown()">缩小字体</button>
+        <button onclick="toggleDark()">昼夜模式</button>
+        <button onclick="alignLeft()">左对齐</button>
+        <button onclick="alignCenter()">居中</button>
+        <button onclick="alignRight()">右对齐</button>
+        <button onclick="checkErrorWords()">错别字修正</button>
+        <button onclick="switchEdit()">编辑模式</button>
+
+        <select id="fullTransLang">
+            <option value="zh">中文</option>
+            <option value="en">英语</option>
+            <option value="ja">日语</option>
+            <option value="ko">韩语</option>
+            <option value="ar">阿拉伯语</option>
+            <option value="ru">俄语</option>
+            <option value="fr">法语</option>
+            <option value="pt">葡萄牙语</option>
+        </select>
+        <button onclick="fullTranslate()" style="background:#27ae60;">全文对照翻译</button>
+
+        <select id="fontSelect"></select>
+        <input type="color" id="textColor" title="字体颜色">
+        <input type="file" id="fileInput" accept=".docx,.doc,.txt,.md">
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="findVal" placeholder="查找内容">
+        <input type="text" id="replaceVal" placeholder="替换为">
+        <button onclick="findText()">查找</button>
+        <button onclick="replaceAll()">全部替换</button>
+    </div>
+
+    <div class="stat-bar">全文总字数：<span id="wordCount">0</span> 字</div>
+
+    <div class="read-box" id="reader">
+欢迎使用【艺愈系简洁阅读器】
+支持微信小程序、文档阅读、多语言对照翻译、自定义字体颜色。
+    </div>
+</div>
+
+<div class="trans-panel" id="transBox">
+    <div style="font-weight:bold;margin-bottom:8px;">原文 → 译文 对照</div>
+    <div class="trans-result" id="transResult">翻译结果将在此显示</div>
+</div>
+
+<script>
+// 真实可用字体
+const fonts = ["微软雅黑","宋体","黑体","楷体","隶书","幼圆","仿宋","苹方"];
+const reader = document.getElementById("reader");
+const fontSel = document.getElementById("fontSelect");
+const wordCountDom = document.getElementById("wordCount");
+const transResult = document.getElementById("transResult");
+let fontSize = 17;
+let darkMode = false;
+let editStatus = false;
+let textColor = "#333333";
+
+let matchList = [];
+let currentMatchIndex = -1;
+
+fonts.forEach(f=>{
+    let opt = document.createElement("option");
+    opt.value = f;
+    opt.innerText = f;
+    fontSel.appendChild(opt);
+});
+
+function applyColor(){
+    reader.style.color = textColor;
+    document.querySelectorAll(".highlight").forEach(el=>el.style.color=textColor);
+    document.querySelectorAll(".current-highlight").forEach(el=>el.style.color="#fff");
+}
+
+function countWord(){
+    let text = reader.innerText.replace(/\s/g,"");
+    wordCountDom.innerText = text.length;
+}
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const fileReader = new FileReader();
+    if(file.name.endsWith('.txt') || file.name.endsWith('.md')){
+        fileReader.onload = ev=>{
+            reader.innerText = ev.target.result;
+            applyColor();
+            countWord();
+            saveConfig();
+        }
+        fileReader.readAsText(file,'utf-8');
+    }else{
+        fileReader.readAsArrayBuffer(file);
+        fileReader.onload = ev=>{
+            mammoth.convertToHtml({arrayBuffer: ev.target.result}).then(res=>{
+                reader.innerHTML = res.value;
+                applyColor();
+                countWord();
+                saveConfig();
+            });
+        };
+    }
+});
+
+function exportWord(){
+    let content = reader.innerText;
+    let blob = new Blob([content],{type:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+    saveAs(blob,"艺愈系文稿.docx");
+}
+
+function alignLeft(){reader.style.textAlign="left";saveConfig();}
+function alignCenter(){reader.style.textAlign="center";saveConfig();}
+function alignRight(){reader.style.textAlign="right";saveConfig();}
+
+function checkErrorWords(){
+    let text = reader.innerText;
+    let fixMap = {"即然":"既然","既使":"即使","渡过":"度过","年青":"年轻","决对":"绝对","以经":"已经","在次":"再次","到至":"导致","气份":"气氛","烦脑":"烦恼","座下":"坐下"};
+    for(let k in fixMap) text=text.replaceAll(k,fixMap[k]);
+    reader.innerText=text;
+    applyColor();
+    countWord();
+    alert("常用错别字已修正完毕");
+    saveConfig();
+}
+
+function switchEdit(){
+    editStatus=!editStatus;
+    reader.contentEditable = editStatus ? "true" : "false";
+    alert(editStatus?"已开启编辑模式，可直接修改文字":"已关闭编辑模式，仅只读阅览");
+}
+
+function findText(){
+    let key = document.getElementById("findVal").value.trim();
+    if(!key)return alert("请输入查找内容");
+    clearHighlights();
+    let text = reader.innerHTML;
+    let regex = new RegExp("("+escapeRegExp(key)+")","gi");
+    reader.innerHTML = text.replace(regex,`<span class="highlight" style="color:${textColor}">$1</span>`);
+    matchList = Array.from(reader.querySelectorAll(".highlight"));
+    currentMatchIndex = 0;
+    if(matchList.length===0) return alert("未找到："+key);
+    jumpToMatch(currentMatchIndex);
+}
+function escapeRegExp(str){return str.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");}
+function clearHighlights(){
+    matchList.forEach(el=>el.replaceWith(...el.childNodes));
+    matchList=[];currentMatchIndex=-1;
+}
+function jumpToMatch(index){
+    matchList.forEach((el,i)=>el.classList.toggle("current-highlight",i===index));
+    matchList[index].scrollIntoView({behavior:"smooth",block:"center"});
+}
+
+function replaceAll(){
+    let oldTxt = document.getElementById("findVal").value;
+    let newTxt = document.getElementById("replaceVal").value;
+    if(!oldTxt)return alert("请输入需要替换的内容");
+    reader.innerText = reader.innerText.replaceAll(oldTxt,newTxt);
+    applyColor();
+    countWord();
+    alert("全部替换完成");
+}
+
+async function fullTranslate(){
+    const text = reader.innerText.trim();
+    if(!text) return alert("请先输入或打开文本");
+    const targetLang = document.getElementById("fullTransLang").value;
+    transResult.innerHTML = "翻译中，请稍候...";
+
+    const sentences = text.split(/(?<=[。！？.!?\n])/).filter(s=>s.trim());
+    let resultHTML = "";
+
+    for(let i=0;i<sentences.length;i++){
+        const sentence = sentences[i].trim();
+        try {
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(sentence)}`);
+            const data = await res.json();
+            const trans = data[0][0][0];
+            resultHTML += `<div class="pair-block"><div class="orig" style="color:${textColor}">${sentence}</div><div class="trans">${trans}</div></div>`;
+        } catch(e) {
+            resultHTML += `<div class="pair-block"><div class="orig" style="color:${textColor}">${sentence}</div><div class="trans">翻译失败</div></div>`;
+        }
+        transResult.innerHTML = `进度：${i+1}/${sentences.length}<br><br>` + resultHTML;
+    }
+}
+
+function fontUp(){if(fontSize<40)fontSize++;reader.style.fontSize=fontSize+"px";saveConfig();}
+function fontDown(){if(fontSize>12)fontSize--;reader.style.fontSize=fontSize+"px";saveConfig();}
+fontSel.onchange = ()=>{reader.style.fontFamily=fontSel.value;saveConfig();}
+document.getElementById('textColor').onchange = ()=>{
+    textColor = document.getElementById('textColor').value;
+    applyColor();
+    saveConfig();
+};
+function toggleDark(){darkMode=!darkMode;document.body.className=darkMode?"dark":"light";saveConfig();}
+
+function saveConfig(){
+    localStorage.setItem("yy_font",fontSel.value);
+    localStorage.setItem("yy_size",fontSize);
+    localStorage.setItem("yy_color",textColor);
+    localStorage.setItem("yy_dark",darkMode);
+    localStorage.setItem("yy_align",reader.style.textAlign);
+}
+window.onload=()=>{
+    fontSel.value=localStorage.getItem("yy_font")||fonts[0];
+    fontSize=Number(localStorage.getItem("yy_size"))||17;
+    textColor=localStorage.getItem("yy_color")||"#333333";
+    darkMode=localStorage.getItem("yy_dark")==="true";
+    let a=localStorage.getItem("yy_align")||"left";
+    document.getElementById('textColor').value=textColor;
+    reader.style.fontSize=fontSize+"px";
+    reader.style.fontFamily=fontSel.value;
+    reader.style.textAlign=a;
+    document.body.className=darkMode?"dark":"light";
+    applyColor();
+    countWord();
+    reader.contentEditable = "false";
+}
+</script>
+</body>
+</html>
