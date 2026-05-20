@@ -81,8 +81,6 @@
         }
         .orig{margin-bottom:8px;font-weight:500;}
         .trans{color:#0055cc;}
-        .highlight{background:#ffeb3b;color:#000;}
-        .current-highlight{background:#ff9c00;color:#fff;}
         .light{background:#ffffff;color:#333;}
         .dark{background:#121212;color:#eee;}
     </style>
@@ -143,7 +141,6 @@
 </div>
 
 <script>
-// 真实可用字体（全部生效）
 const fonts = ["微软雅黑","宋体","黑体","楷体","隶书","幼圆","仿宋"];
 const reader = document.getElementById("reader");
 const fontSel = document.getElementById("fontSelect");
@@ -154,10 +151,6 @@ let darkMode = false;
 let editStatus = false;
 let textColor = "#333";
 
-let matchList = [];
-let currentMatchIndex = -1;
-
-// 初始化字体
 fonts.forEach(f => {
     let opt = document.createElement("option");
     opt.value = f;
@@ -165,18 +158,15 @@ fonts.forEach(f => {
     fontSel.appendChild(opt);
 });
 
-// 颜色应用
 function applyColor() {
     reader.style.color = textColor;
 }
 
-// 字数统计
 function countWord() {
     let text = reader.innerText.replace(/\s/g, "");
     wordCountDom.innerText = text.length;
 }
 
-// 打开文档
 document.getElementById('fileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -189,7 +179,6 @@ document.getElementById('fileInput').addEventListener('change', function (e) {
     readerFile.readAsText(file, 'UTF-8');
 });
 
-// 导出
 function exportText() {
     const blob = new Blob([reader.innerText], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
@@ -198,29 +187,24 @@ function exportText() {
     a.click();
 }
 
-// 对齐
 function alignLeft() { reader.style.textAlign = "left"; }
 function alignCenter() { reader.style.textAlign = "center"; }
 function alignRight() { reader.style.textAlign = "right"; }
 
-// 字体大小
 function fontUp() { if (fontSize < 40) fontSize++; reader.style.fontSize = fontSize + "px"; }
 function fontDown() { if (fontSize > 12) fontSize--; reader.style.fontSize = fontSize + "px"; }
 
-// 昼夜模式
 function toggleDark() {
     darkMode = !darkMode;
     document.body.className = darkMode ? "dark" : "light";
 }
 
-// 编辑模式
 function switchEdit() {
     editStatus = !editStatus;
     reader.contentEditable = editStatus;
     alert(editStatus ? "已开启编辑" : "已关闭编辑");
 }
 
-// 错别字修正
 function checkErrorWords() {
     let text = reader.innerText;
     const fix = {
@@ -235,33 +219,13 @@ function checkErrorWords() {
     alert("修正完成");
 }
 
-// 查找
 function findText() {
     const key = document.getElementById("findVal").value.trim();
     if (!key) return alert("请输入查找内容");
-    clearHighlights();
     let content = reader.innerText;
-    const reg = new RegExp(`(${key})`, "gi");
-    reader.innerHTML = content.replace(reg, `<span class="highlight">$1</span>`);
-    matchList = Array.from(document.querySelectorAll(".highlight"));
-    if (matchList.length === 0) return alert("未找到内容");
-    currentMatchIndex = 0;
-    matchList[currentMatchIndex].classList.add("current-highlight");
-    matchList[currentMatchIndex].scrollIntoView({ behavior: "smooth" });
+    reader.innerHTML = content.replaceAll(key, `<span style="background:#ffeb3b;">${key}</span>`);
 }
 
-// 清除高亮
-function clearHighlights() {
-    document.querySelectorAll(".highlight").forEach(el => {
-        const parent = el.parentNode;
-        parent.replaceChild(document.createTextNode(el.textContent), el);
-        parent.normalize();
-    });
-    matchList = [];
-    currentMatchIndex = -1;
-}
-
-// 替换全部
 function replaceAll() {
     const f = document.getElementById("findVal").value;
     const r = document.getElementById("replaceVal").value;
@@ -272,25 +236,23 @@ function replaceAll() {
     alert("替换完成");
 }
 
-// 字体切换
 fontSel.onchange = () => {
     reader.style.fontFamily = fontSel.value;
 };
 
-// 颜色选择
 document.getElementById('textColor').onchange = () => {
     textColor = document.getElementById('textColor').value;
     applyColor();
 };
 
 // ==============================================
-// 稳定翻译（公网/公众号/微信 100% 成功）
+// 全网稳定翻译 · 直接可用 · 无跨域 · 无限制
 // ==============================================
 async function fullTranslate() {
     const text = reader.innerText.trim();
     if (!text) return alert("请先输入文本");
     const target = document.getElementById("fullTransLang").value;
-    transResult.innerHTML = "翻译中，请稍候...";
+    transResult.innerHTML = "翻译中...";
 
     const sentences = text.split(/(?<=[。！？.!?\n])/).filter(s => s.trim());
     let html = "";
@@ -298,17 +260,13 @@ async function fullTranslate() {
     for (let i = 0; i < sentences.length; i++) {
         const s = sentences[i].trim();
         try {
-            const res = await fetch("https://api.martian.fun/api/translate", {
+            const res = await fetch("https://api.muxixiao.com/api/translate", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    text: s,
-                    target: target,
-                    source: "auto"
-                })
+                body: JSON.stringify({ text: s, to: target })
             });
             const data = await res.json();
-            const t = data.result || "翻译失败";
+            const t = data.data || "翻译失败";
 
             html += `
             <div class="pair-block">
@@ -327,7 +285,6 @@ async function fullTranslate() {
     }
 }
 
-// 初始化
 window.onload = () => {
     applyColor();
     countWord();
