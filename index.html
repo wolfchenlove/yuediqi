@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#2E86AB">
-    <title>艺愈阅读器 </title>
+    <title>艺愈阅读器</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -15,7 +15,6 @@
             overflow:hidden;
             -webkit-font-smoothing:antialiased;
         }
-        /* 3个护眼背景（阅读区直接继承，无外框） */
         body.bg-white{background:#f9f9f9;color:#333;}
         body.bg-green{background:#e6f5e6;color:#333;}
         body.bg-blue{background:#e6f2f8;color:#333;}
@@ -33,7 +32,7 @@
             padding:12px 10px;
             font-size:18px;
             font-weight:600;
-            border-bottom:1px solid #e5e5e5;
+            border-bottom:1px solid #eee;
             z-index:10;
         }
         .main-body{
@@ -49,7 +48,6 @@
             overflow:hidden;
             min-height:0;
         }
-        /* 两行按钮 */
         .tool-row{
             background:#fff;
             padding:8px;
@@ -58,52 +56,49 @@
             gap:6px;
             justify-content:flex-start;
             align-items:center;
-            border-bottom:1px solid #e5e5e5;
+            border-bottom:1px solid #eee;
         }
         .btn{
             flex:1;
-            min-width:60px;
-            max-width:70px;
-            height:56px;
+            min-width:56px;
+            max-width:64px;
+            height:44px;
             display:flex;
-            flex-direction:column;
             align-items:center;
             justify-content:center;
             border:none;
-            border-radius:10px;
-            background:#f0f4f8;
+            border-radius:6px;
+            background:#f5f7fa;
             color:#2E86AB;
-            font-size:11px;
+            font-size:16px;
             -webkit-tap-highlight-color:transparent;
         }
-        .btn:active{background:#e0e8f0;}
-        .btn .icon{font-size:19px;margin-bottom:2px;}
+        .btn:active{background:#e5e8ed;}
         .btn-green{background:#e6f7ef;color:#27ae60;}
         .btn-green:active{background:#d0f0e0;}
         .select-box{
-            height:42px;
-            padding:0 8px;
-            border-radius:8px;
+            height:40px;
+            padding:0 6px;
+            border-radius:6px;
             border:1px solid #ddd;
             font-size:14px;
             flex:1;
-            min-width:100px;
+            min-width:90px;
         }
         .color-input{
-            width:42px;
-            height:42px;
-            border-radius:8px;
+            width:40px;
+            height:40px;
+            border-radius:6px;
             border:1px solid #ddd;
         }
         .bg-group{
             display:flex;
             gap:4px;
-            margin-left:4px;
         }
         .bg-dot{
             width:36px;
             height:36px;
-            border-radius:8px;
+            border-radius:6px;
             border:1px solid #ddd;
         }
         .bg1{background:#f9f9f9;}
@@ -111,36 +106,36 @@
         .bg3{background:#e6f2f8;}
         .search-box{
             padding:8px;
-            background:#f0f4f8;
+            background:#f5f7fa;
             display:flex;
             gap:6px;
             align-items:center;
-            border-bottom:1px solid #e5e5e5;
+            border-bottom:1px solid #eee;
         }
         .search-box input{
             flex:1;
-            height:42px;
+            height:40px;
             padding:0 10px;
-            border-radius:8px;
+            border-radius:6px;
             border:1px solid #ddd;
             font-size:14px;
         }
         .search-btn{
-            width:42px;
-            height:42px;
-            border-radius:8px;
-            background:#f0f4f8;
+            width:40px;
+            height:40px;
+            border-radius:6px;
+            background:#f5f7fa;
             border:none;
             color:#2E86AB;
+            font-size:16px;
         }
         .stat-bar{
             padding:6px;
             text-align:center;
             font-size:12px;
             color:#666;
-            background:#f0f4f8;
+            background:#f5f7fa;
         }
-        /* 阅读区：无外框、全色背景、顺滑滚动 */
         .read-box{
             flex:1;
             padding:16px;
@@ -155,7 +150,6 @@
             min-height:0;
             background:transparent !important;
         }
-        /* 深色模式 */
         .dark{background:#121212 !important;color:#e0e0e0;}
         .dark .header,.dark .tool-row,.dark .search-box,.dark .stat-bar{
             background:#1e1e1e !important; border-color:#333;
@@ -170,36 +164,19 @@
 <div class="header">欢迎关注《艺愈系》公众号</div>
 <div class="main-body">
     <div class="main-wrap">
-        <!-- 第一行按钮 -->
         <div class="tool-row">
-            <button class="btn" onclick="openFile()">
-                <span class="icon">📂</span>
-                <span>打开</span>
-            </button>
-            <button class="btn btn-green" onclick="exportTxt()">
-                <span class="icon">💾</span>
-                <span>保存</span>
-            </button>
-            <button class="btn" onclick="fontUp()">
-                <span class="icon">A+</span>
-                <span>放大</span>
-            </button>
-            <button class="btn" onclick="fontDown()">
-                <span class="icon">A-</span>
-                <span>缩小</span>
-            </button>
-            <button class="btn" onclick="toggleDark()">
-                <span class="icon">🌙</span>
-                <span>深色</span>
-            </button>
+            <button class="btn" onclick="openFile()">📂</button>
+            <button class="btn btn-green" onclick="exportTxt()">💾</button>
+            <button class="btn" onclick="fontUp()">+</button>
+            <button class="btn" onclick="fontDown()">-</button>
+            <button class="btn" onclick="toggleDark()">🌙</button>
         </div>
-        <!-- 第二行按钮 -->
         <div class="tool-row">
-            <button class="btn" onclick="alignLeft()"><span class="icon">⬅</span><span>左</span></button>
-            <button class="btn" onclick="alignCenter()"><span class="icon">↔</span><span>中</span></button>
-            <button class="btn" onclick="alignRight()"><span class="icon">➡</span><span>右</span></button>
-            <button class="btn" onclick="checkErrorWords()"><span class="icon">✓</span><span>纠错</span></button>
-            <button class="btn" onclick="switchEdit()"><span class="icon">✏</span><span>编辑</span></button>
+            <button class="btn" onclick="alignLeft()">◀</button>
+            <button class="btn" onclick="alignCenter()">≡</button>
+            <button class="btn" onclick="alignRight()">▶</button>
+            <button class="btn" onclick="checkErrorWords()">✓</button>
+            <button class="btn" onclick="switchEdit()">✏</button>
             <select id="fontSelect" class="select-box"></select>
             <input type="color" id="textColor" class="color-input">
             <div class="bg-group">
@@ -215,18 +192,18 @@
             <button class="search-btn" onclick="replaceAll()">🔄</button>
         </div>
         <div class="stat-bar">字数：<span id="wordCount">0</span></div>
-        <!-- 无框阅读区 -->
         <div class="read-box" id="reader" contenteditable="false">
 欢迎使用艺愈阅读器
-✅ 无框全屏阅读
+✅ 极简图标
+✅ 清爽界面
+✅ 支持微信文档(.doc/.docx)
 ✅ 安卓本地保存（WPS可打开）
 ✅ 安卓/苹果全字体生效
-✅ 3种护眼背景
 ✅ 顺滑上下滑动
         </div>
     </div>
 </div>
-<input type="file" id="fileInput" accept=".wps,.docx,.txt">
+<input type="file" id="fileInput" accept=".wps,.docx,.doc,.txt">
 <script>
 // 安卓/苹果全生效字体
 const fonts = ["系统默认","思源黑体","苹方","Roboto","黑体","宋体","楷体","无衬线体"];
@@ -246,7 +223,6 @@ fonts.forEach(f => {
     fontSel.appendChild(opt);
 });
 
-// 字体映射（安卓/苹果100%生效）
 fontSel.onchange = () => {
     const v = fontSel.value;
     let ff = "sans-serif";
@@ -276,14 +252,16 @@ document.getElementById('fileInput').addEventListener('change', e => {
     if(!file) return;
     const name = file.name.toLowerCase();
     const fr = new FileReader();
-    if(name.endsWith(".wps") || name.endsWith(".docx")){
+
+    // 支持微信文档：.doc .docx
+    if(name.endsWith(".wps") || name.endsWith(".docx") || name.endsWith(".doc")){
         fr.readAsArrayBuffer(file);
         fr.onload = ev => {
             mammoth.extractRawText({ arrayBuffer: ev.target.result })
             .then(res => {
                 reader.innerText = res.value;
                 applyColor(); countWord();
-            }).catch(() => reader.innerText = "解析失败");
+            }).catch(() => reader.innerText = "文档解析失败");
         };
     } else {
         fr.readAsArrayBuffer(file);
