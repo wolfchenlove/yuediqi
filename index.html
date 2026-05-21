@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#2E86AB">
-    <title>艺愈阅读器</title>
+    <title>艺愈系阅读器</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
@@ -29,8 +29,8 @@
             background:#fff;
             color:#333;
             text-align:center;
-            padding:12px 10px;
-            font-size:18px;
+            padding:12px;
+            font-size:17px;
             font-weight:600;
             border-bottom:1px solid #eee;
             z-index:10;
@@ -48,65 +48,79 @@
             overflow:hidden;
             min-height:0;
         }
-        .tool-row{
+        .toolbar{
             background:#fff;
             padding:8px;
             display:flex;
             flex-wrap:wrap;
             gap:6px;
-            justify-content:flex-start;
-            align-items:center;
+            justify-content:center;
             border-bottom:1px solid #eee;
         }
         .btn{
-            flex:1;
-            min-width:56px;
-            max-width:64px;
+            width:44px;
             height:44px;
+            border:none;
+            border-radius:8px;
+            background:#f5f7fa;
+            color:#2E86AB;
+            font-size:18px;
             display:flex;
             align-items:center;
             justify-content:center;
-            border:none;
-            border-radius:6px;
-            background:#f5f7fa;
-            color:#2E86AB;
-            font-size:16px;
             -webkit-tap-highlight-color:transparent;
         }
         .btn:active{background:#e5e8ed;}
-        .btn-green{background:#e6f7ef;color:#27ae60;}
-        .btn-green:active{background:#d0f0e0;}
-        .select-box{
-            height:40px;
-            padding:0 6px;
-            border-radius:6px;
-            border:1px solid #ddd;
-            font-size:14px;
-            flex:1;
-            min-width:90px;
+        .btn.green{background:#e6f7ef;color:#27ae60;}
+        /* 可折叠设置区 */
+        .settings{
+            max-height:0;
+            overflow:hidden;
+            background:#fff;
+            transition:max-height 0.3s ease;
+            border-bottom:1px solid #eee;
         }
-        .color-input{
-            width:40px;
-            height:40px;
-            border-radius:6px;
-            border:1px solid #ddd;
-        }
-        .bg-group{
+        .settings.open{max-height:200px;}
+        .set-row{
             display:flex;
-            gap:4px;
+            align-items:center;
+            padding:8px 12px;
+            gap:8px;
+            flex-wrap:wrap;
         }
-        .bg-dot{
+        .toggle-set{
+            width:100%;
+            text-align:center;
+            padding:6px;
+            background:#fff;
+            border:none;
+            font-size:14px;
+            color:#666;
+            border-bottom:1px solid #eee;
+        }
+        .set-btn{
             width:36px;
             height:36px;
             border-radius:6px;
             border:1px solid #ddd;
+            cursor:pointer;
         }
-        .bg1{background:#f9f9f9;}
-        .bg2{background:#e6f5e6;}
-        .bg3{background:#e6f2f8;}
+        .color-wrap{
+            display:flex;
+            align-items:center;
+            gap:6px;
+        }
+        #textColor{
+            width:44px;
+            height:44px;
+            border-radius:8px;
+            border:1px solid #ddd;
+            cursor:pointer;
+            background:#fff;
+        }
         .search-box{
             padding:8px;
-            background:#f5f7fa;
+            background:#fff;
             display:flex;
             gap:6px;
             align-items:center;
@@ -134,7 +148,8 @@
             text-align:center;
             font-size:12px;
             color:#666;
-            background:#f5f7fa;
+            background:#fff;
+            border-bottom:1px solid #eee;
         }
         .read-box{
             flex:1;
@@ -150,71 +165,90 @@
             min-height:0;
             background:transparent !important;
         }
+        /* 深色模式 */
         .dark{background:#121212 !important;color:#e0e0e0;}
-        .dark .header,.dark .tool-row,.dark .search-box,.dark .stat-bar{
+        .dark .header,.dark .toolbar,.dark .settings,.dark .search-box,.dark .stat-bar{
             background:#1e1e1e !important; border-color:#333;
         }
         .dark .btn{background:#2a2a2a;color:#81bfff;}
-        .dark .btn-green{background:#1f4032;color:#5aff8a;}
+        .dark .btn.green{background:#1f4032;color:#5aff8a;}
         .dark input,.dark select{background:#2a2a2a;color:#fff;border-color:#444;}
         #fileInput{display:none;}
     </style>
 </head>
 <body class="bg-white">
-<div class="header">欢迎关注《艺愈系》公众号</div>
+<div class="header">欢迎关注：《艺愈系》公众号</div>
+
 <div class="main-body">
     <div class="main-wrap">
-        <div class="tool-row">
+        <!-- 主工具栏 -->
+        <div class="toolbar">
             <button class="btn" onclick="openFile()">📂</button>
-            <button class="btn btn-green" onclick="exportTxt()">💾</button>
+            <button class="btn green" onclick="saveLocal()">💾</button>
             <button class="btn" onclick="fontUp()">+</button>
             <button class="btn" onclick="fontDown()">-</button>
             <button class="btn" onclick="toggleDark()">🌙</button>
-        </div>
-        <div class="tool-row">
             <button class="btn" onclick="alignLeft()">◀</button>
             <button class="btn" onclick="alignCenter()">≡</button>
             <button class="btn" onclick="alignRight()">▶</button>
-            <button class="btn" onclick="checkErrorWords()">✓</button>
-            <button class="btn" onclick="switchEdit()">✏</button>
-            <select id="fontSelect" class="select-box"></select>
-            <input type="color" id="textColor" class="color-input">
-            <div class="bg-group">
-                <button class="bg-dot bg1" onclick="setBg('bg-white')"></button>
-                <button class="bg-dot bg2" onclick="setBg('bg-green')"></button>
-                <button class="bg-dot bg3" onclick="setBg('bg-blue')"></button>
+            <button class="btn" id="editBtn" onclick="switchEdit()">📝</button>
+        </div>
+
+        <!-- 折叠设置区 -->
+        <button class="toggle-set" onclick="toggleSettings()">设置 ⬆</button>
+        <div class="settings" id="settings">
+            <div class="set-row">
+                <select id="fontSelect" style="flex:1;height:36px;border-radius:6px;border:1px solid #ddd;"></select>
+                <div class="color-wrap">
+                    <label style="font-size:13px;color:#666;">字色</label>
+                    <input type="color" id="textColor">
+                </div>
+                <div class="bg-group">
+                    <button class="set-btn" style="background:#f9f9f9;" onclick="setBg('bg-white')"></button>
+                    <button class="set-btn" style="background:#e6f5e6;" onclick="setBg('bg-green')"></button>
+                    <button class="set-btn" style="background:#e6f2f8;" onclick="setBg('bg-blue')"></button>
+                </div>
             </div>
         </div>
+
         <div class="search-box">
             <input type="text" id="findVal" placeholder="查找">
             <input type="text" id="replaceVal" placeholder="替换">
             <button class="search-btn" onclick="findText()">🔍</button>
             <button class="search-btn" onclick="replaceAll()">🔄</button>
         </div>
+
         <div class="stat-bar">字数：<span id="wordCount">0</span></div>
+
         <div class="read-box" id="reader" contenteditable="false">
 欢迎使用艺愈阅读器
-✅ 极简图标
-✅ 清爽界面
-✅ 支持微信文档(.doc/.docx)
-✅ 安卓本地保存（WPS可打开）
-✅ 安卓/苹果全字体生效
-✅ 顺滑上下滑动
+✅ 本地保存（所有App可打开）
+✅ 可折叠设置
+✅ 美化字色选择
+✅ 编辑双图标
+✅ 手机自适应
+✅ 顺滑阅读
         </div>
     </div>
 </div>
+
 <input type="file" id="fileInput" accept=".wps,.docx,.doc,.txt">
+
 <script>
-// 安卓/苹果全生效字体
+// 全可用字体
 const fonts = ["系统默认","思源黑体","苹方","Roboto","黑体","宋体","楷体","无衬线体"];
 const reader = document.getElementById("reader");
 const fontSel = document.getElementById("fontSelect");
 const wordCountDom = document.getElementById("wordCount");
+const settings = document.getElementById("settings");
+const editBtn = document.getElementById("editBtn");
+
 let fontSize = 17;
 let darkMode = false;
 let editStatus = false;
 let textColor = "#333";
 let currentBg = "bg-white";
+let settingsOpen = false;
 
 fonts.forEach(f => {
     const opt = document.createElement("option");
@@ -232,7 +266,6 @@ fontSel.onchange = () => {
     else if(v === "黑体") ff = '"Helvetica Neue",sans-serif';
     else if(v === "宋体") ff = '"SimSun",serif';
     else if(v === "楷体") ff = '"KaiTi",serif';
-    else if(v === "无衬线体") ff = "sans-serif";
     reader.style.fontFamily = ff;
 };
 
@@ -245,6 +278,11 @@ function setBg(cls){
     currentBg = cls;
     document.body.className = cls + (darkMode ? " dark" : "");
 }
+function toggleSettings(){
+    settingsOpen = !settingsOpen;
+    settings.classList.toggle("open", settingsOpen);
+    document.querySelector(".toggle-set").innerText = settingsOpen ? "设置 ⬇" : "设置 ⬆";
+}
 function openFile(){ document.getElementById("fileInput").click(); }
 
 document.getElementById('fileInput').addEventListener('change', e => {
@@ -252,8 +290,6 @@ document.getElementById('fileInput').addEventListener('change', e => {
     if(!file) return;
     const name = file.name.toLowerCase();
     const fr = new FileReader();
-
-    // 支持微信文档：.doc .docx
     if(name.endsWith(".wps") || name.endsWith(".docx") || name.endsWith(".doc")){
         fr.readAsArrayBuffer(file);
         fr.onload = ev => {
@@ -276,9 +312,10 @@ document.getElementById('fileInput').addEventListener('change', e => {
     }
 });
 
-// 安卓本地保存txt（WPS可直接打开）
-function exportTxt(){
-    const blob = new Blob([reader.innerText], { type: "text/plain;charset=utf-8" });
+// 本地保存（所有App可打开）
+function saveLocal(){
+    const text = reader.innerText;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "文档_"+Date.now()+".txt";
@@ -286,7 +323,7 @@ function exportTxt(){
     a.click();
     document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
-    alert("✅ 已保存到本地！WPS可直接打开");
+    alert("✅ 已保存到本地！所有App可打开");
 }
 
 function alignLeft(){reader.style.textAlign="left";}
@@ -301,9 +338,11 @@ function toggleDark(){
     applyColor();
 }
 
+// 编辑双图标
 function switchEdit(){
     editStatus = !editStatus;
     reader.contentEditable = editStatus;
+    editBtn.innerText = editStatus ? "✏️" : "📝";
     alert(editStatus ? "✅ 已开启编辑" : "❌ 已关闭编辑");
 }
 
