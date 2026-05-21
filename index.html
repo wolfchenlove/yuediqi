@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#2E86AB">
+    <title>艺愈阅读器｜极简伸缩版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+            -webkit-tap-highlight-color:transparent;
+        }
+        html,body{
+            height:100%;
+            overflow:hidden;
+            -webkit-font-smoothing:antialiased;
+            -moz-osx-font-smoothing:grayscale;
+        }
+        body.bg-white{background:#f9f9f9;color:#333;}
+        body.bg-green{background:#e6f5e6;color:#333;}
+        body.bg-blue{background:#e6f2f8;color:#333;}
+        body{
+            display:flex;
+            flex-direction:column;
+            transition:all 0.25s ease;
+            padding-top:env(safe-area-inset-top);
+            font-family:"Noto Sans CJK SC","PingFang SC","Roboto",sans-serif;
+        }
+        .header{
+            background:#fff;
+            color:#333;
+            text-align:center;
+            padding:12px;
+            font-size:17px;
+            font-weight:600;
+            border-bottom:1px solid #eee;
+            z-index:10;
+            box-shadow:0 1px 3px rgba(0,0,0,0.05);
+        }
+        .main-body{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+        }
+        .main-wrap{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+            overflow:hidden;
+            min-height:0;
+        }
+        /* 伸缩设置：所有按钮放这里 */
+        .settings{
+            max-height:0;
+            overflow:hidden;
+            background:#fff;
+            transition:max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom:1px solid #eee;
+        }
+        .settings.open{max-height:350px;}
+        .toggle-set{
+            width:100%;
+            text-align:center;
+            padding:12px;
+            background:#fff;
+            border:none;
+            font-size:15px;
+            color:#2E86AB;
+            border-bottom:1px solid #eee;
+            cursor:pointer;
+            transition:background 0.2s ease;
+        }
+        .toggle-set:hover{background:#f5f7fa;}
+        .btn-row{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            padding:12px 10px;
+            justify-content:center;
+        }
+        .btn{
+            width:46px;
+            height:46px;
+            border:none;
+            border-radius:14px;
+            background:#f5f7fa;
+            color:#2E86AB;
+            font-size:18px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            cursor:pointer;
+            transition:all 0.2s ease;
+            position:relative;
+        }
+        /* 按钮hover提示 */
+        .btn::after{
+            content:attr(data-tip);
+            position:absolute;
+            bottom:-30px;
+            left:50%;
+            transform:translateX(-50%) scale(0);
+            background:rgba(0,0,0,0.8);
+            color:#fff;
+            font-size:12px;
+            padding:2px 8px;
+            border-radius:4px;
+            white-space:nowrap;
+            transition:transform 0.2s ease;
+            pointer-events:none;
+        }
+        .btn:hover::after{transform:translateX(-50%) scale(1);}
+        .btn.green{background:#e6f7ef;color:#27ae60;}
+        .btn:hover{background:#e5e8ed;transform:scale(1.05);}
+        .btn:active{background:#dcdfe6;transform:scale(0.98);}
+        .set-row{
+            display:flex;
+            align-items:center;
+            padding:10px 10px 12px;
+            gap:12px;
+            flex-wrap:wrap;
+            justify-content:center;
+        }
+        /* 美化颜色按钮 */
+        .color-btn{
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            border:2px solid #fff;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+            cursor:pointer;
+            transition:all 0.2s ease;
+            position:relative;
+        }
+        .color-btn:hover{
+            transform:scale(1.1);
+            box-shadow:0 3px 8px rgba(0,0,0,0.15);
+        }
+        .color-btn.active{
+            box-shadow:0 0 0 2px #2E86AB, 0 2px 6px rgba(0,0,0,0.1);
+            transform:scale(1.05);
+        }
+        #customColor{
+            width:40px;
+            height:40px;
+            border-radius:50%;
+            border:none;
+            cursor:pointer;
+            padding:0;
+            appearance:none;
+            background:none;
+        }
+        #customColor::-webkit-color-swatch-wrapper{padding:0;}
+        #customColor::-webkit-color-swatch{
+            border-radius:50%;
+            border:2px solid #fff;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+        }
+        select{
+            height:40px;
+            padding:0 12px;
+            border-radius:10px;
+            border:1px solid #ddd;
+            flex:1;
+            min-width:120px;
+            background:#fff;
+            cursor:pointer;
+            transition:border-color 0.2s ease;
+        }
+        select:focus{
+            border-color:#2E86AB;
+            outline:none;
+        }
+        .search-box{
+            padding:10px;
+            background:#fff;
+            display:flex;
+            gap:8px;
+            align-items:center;
+            border-bottom:1px solid #eee;
+        }
+        .search-box input{
+            flex:1;
+            height:42px;
+            padding:0 12px;
+            border-radius:10px;
+            border:1px solid #ddd;
+            transition:border-color 0.2s ease;
+        }
+        .search-box input:focus{
+            border-color:#2E86AB;
+            outline:none;
+            box-shadow:0 0 0 2px rgba(46,134,171,0.1);
+        }
+        .search-btn{
+            width:42px;
+            height:42px;
+            border-radius:10px;
+            background:#f5f7fa;
+            border:none;
+            color:#2E86AB;
+            cursor:pointer;
+            transition:all 0.2s ease;
+        }
+        .search-btn:hover{background:#e5e8ed;}
+        .search-btn:active{background:#dcdfe6;}
+        .stat-bar{
+            padding:8px;
+            text-align:center;
+            font-size:13px;
+            color:#666;
+            background:#fff;
+            border-bottom:1px solid #eee;
+        }
+        /* 核心：完美换行 */
+        .read-box{
+            flex:1;
+            padding:20px 16px;
+            line-height:2.2;
+            font-size:17px;
+            white-space:pre-wrap !important;
+            word-wrap:break-word !important;
+            overflow-wrap:break-word !important;
+            user-select:text;
+            outline:none;
+            overflow-y:auto;
+            -webkit-overflow-scrolling:touch;
+            touch-action:pan-y;
+            min-height:0;
+            background:transparent;
+            transition:all 0.2s ease;
+        }
+        /* 美化滚动条 */
+        .read-box::-webkit-scrollbar{width:6px;}
+        .read-box::-webkit-scrollbar-track{background:transparent;}
+        .read-box::-webkit-scrollbar-thumb{
+            background:rgba(0,0,0,0.1);
+            border-radius:3px;
+        }
+        .read-box::-webkit-scrollbar-thumb:hover{background:rgba(0,0,0,0.2);}
+        /* 深色模式 */
+        .dark{background:#121212 !important;color:#e0e0e0;}
+        .dark .header,
+        .dark .settings,
+        .dark .search-box,
+        .dark .stat-bar{
+            background:#1e1e1e !important; 
+            border-color:#333;
+        }
+        .dark .btn{background:#2a2a2a;color:#81bfff;}
+        .dark .btn.green{background:#1f4032;color:#5aff8a;}
+        .dark .btn:hover{background:#333;}
+        .dark .btn:active{background:#3a3a3a;}
+        .dark input,
+        .dark select{
+            background:#2a2a2a;
+            color:#fff;
+            border-color:#444;
+        }
+        .dark input:focus,
+        .dark select:focus{
+            border-color:#81bfff;
+        }
+        .dark .toggle-set:hover{background:#2a2a2a;}
+        .dark .read-box::-webkit-scrollbar-thumb{
+            background:rgba(255,255,255,0.2);
+        }
+        .dark .read-box::-webkit-scrollbar-thumb:hover{
+            background:rgba(255,255,255,0.3);
+        }
+        /* 查找高亮样式优化 */
+        .highlight{
+            background:#ffeb3b;
+            color:#000;
+            border-radius:2px;
+            padding:0 2px;
+        }
+        .dark .highlight{
+            background:#ffc107;
+            color:#000;
+        }
+        #fileInput{display:none;}
+    </style>
+</head>
+<body class="bg-white">
+<div class="header">艺愈阅读器｜极简伸缩版</div>
+
+<div class="main-body">
+    <div class="main-wrap">
+        <!-- 伸缩设置：所有按钮在这里 -->
+        <button class="toggle-set" onclick="toggleSettings()">⚙ 展开功能</button>
+        <div class="settings" id="settings">
+            <div class="btn-row">
+                <button class="btn" onclick="openFile()" data-tip="打开文件">📂</button>
+                <button class="btn green" onclick="saveLocal()" data-tip="保存文件">💾</button>
+                <button class="btn" onclick="printDoc()" data-tip="打印文档">🖨</button>
+                <button class="btn" onclick="fontUp()" data-tip="字体放大">+</button>
+                <button class="btn" onclick="fontDown()" data-tip="字体缩小">-</button>
+                <button class="btn" onclick="toggleDark()" data-tip="深色模式">🌙</button>
+                <button class="btn" onclick="alignLeft()" data-tip="左对齐">◀</button>
+                <button class="btn" onclick="alignCenter()" data-tip="居中对齐">≡</button>
+                <button class="btn" onclick="alignRight()" data-tip="右对齐">▶</button>
+                <button class="btn" onclick="switchEdit()" id="editBtn" data-tip="编辑模式">📝</button>
+                <button class="btn" onclick="checkErrorWords()" data-tip="文字纠错">✓</button>
+            </div>
+            <div class="set-row">
+                <select id="fontSelect"></select>
+                <div class="color-btn active" style="background:#333" onclick="setText('#333', this)"></div>
+                <div class="color-btn" style="background:#666" onclick="setText('#666', this)"></div>
+                <div class="color-btn" style="background:#d32f2f" onclick="setText('#d32f2f', this)"></div>
+                <input type="color" id="customColor" onchange="setText(this.value, this)" value="#333">
+                <div class="color-btn" style="background:#f9f9f9" onclick="setBg('bg-white', this)"></div>
+                <div class="color-btn" style="background:#e6f5e6" onclick="setBg('bg-green', this)"></div>
+                <div class="color-btn" style="background:#e6f2f8" onclick="setBg('bg-blue', this)"></div>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="findVal" placeholder="查找内容" autocomplete="off">
+            <input type="text" id="replaceVal" placeholder="替换为" autocomplete="off">
+            <button class="search-btn" onclick="findText()" data-tip="查找">🔍</button>
+            <button class="search-btn" onclick="replaceAll()" data-tip="全部替换">🔄</button>
+        </div>
+
+        <div class="stat-bar">
+            字数：<span id="wordCount">0</span> | 
+            查找结果：<span id="findCount">0</span>
+        </div>
+
+        <div class="read-box" id="reader" contenteditable="false">
+欢迎使用艺愈阅读器
+✅ 所有按钮折叠，界面干净
+✅ 支持打印（安卓/苹果）
+✅ 完美换行、不乱码
+✅ WPS可打开、顺滑阅读
+        </div>
+    </div>
+</div>
+
+<input type="file" id="fileInput" accept=".wps,.docx,.doc,.txt">
+
+<script>
+const fonts = ["系统默认","思源黑体","苹方","Roboto","黑体","宋体","楷体"];
+const reader = document.getElementById("reader");
+const fontSel = document.getElementById("fontSelect");
+const wordCountDom = document.getElementById("wordCount");
+const findCountDom = document.getElementById("findCount");
+const settings = document.getElementById("settings");
+const editBtn = document.getElementById("editBtn");
+const colorBtns = document.querySelectorAll('.color-btn');
+
+let fontSize = 17;
+let darkMode = false;
+let editStatus = false;
+let textColor = "#333";
+let currentBg = "bg-white";
+let settingsOpen = false;
+
+// 初始化字体选择器
+fonts.forEach(f=>{
+    const opt = document.createElement("option");
+    opt.value = f; 
+    opt.innerText = f;
+    fontSel.appendChild(opt);
+});
+
+// 字体切换逻辑
+fontSel.onchange = () => {
+    const v = fontSel.value;
+    let ff = "sans-serif";
+    if(v === "思源黑体") ff = '"Noto Sans CJK SC",sans-serif';
+    else if(v === "苹方") ff = '"PingFang SC",sans-serif';
+    else if(v === "Roboto") ff = '"Roboto",sans-serif';
+    else if(v === "黑体") ff = '"Helvetica Neue",sans-serif';
+    else if(v === "宋体") ff = '"SimSun",serif';
+    else if(v === "楷体") ff = '"KaiTi",serif';
+    reader.style.fontFamily = ff;
+};
+
+// 应用文字颜色
+function applyColor(){ 
+    reader.style.color = textColor; 
+    // 深色模式下强制提高对比度
+    if(darkMode && parseInt(textColor.replace('#',''),16) > 0x999999){
+        reader.style.color = "#e0e0e0";
+    }
+}
+
+// 字数统计（实时更新）
+function countWord(){
+    // 移除高亮标签后统计
+    const cleanText = reader.innerText.replace(/\s/g,"");
+    wordCountDom.innerText = cleanText.length;
+}
+
+// 实时监听内容变化更新字数
+reader.addEventListener('input', countWord);
+
+// 设置背景色（修复active状态）
+function setBg(cls, el) {
+    if(el){
+        // 重置所有背景色按钮active状态
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            if(btn.style.background.includes('f9f9f9') || 
+               btn.style.background.includes('e6f5e6') || 
+               btn.style.background.includes('e6f2f8')){
+                btn.classList.remove('active');
+            }
+        });
+        el.classList.add('active');
+    }
+    currentBg = cls;
+    document.body.className = cls + (darkMode ? " dark" : "");
+}
+
+// 设置文字颜色（修复active状态）
+function setText(c, el) {
+    if(el && el.tagName !== 'INPUT'){
+        // 重置所有文字色按钮active状态
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            if(!btn.style.background.includes('f9f9f9') && 
+               !btn.style.background.includes('e6f5e6') && 
+               !btn.style.background.includes('e6f2f8')){
+                btn.classList.remove('active');
+            }
+        });
+        el.classList.add('active');
+    }
+    textColor = c;
+    // 更新自定义颜色选择器值
+    document.getElementById('customColor').value = c;
+    applyColor();
+}
+
+// 展开/收起设置面板
+function toggleSettings(){
+    settingsOpen = !settingsOpen;
+    settings.classList.toggle("open", settingsOpen);
+    document.querySelector(".toggle-set").innerText = settingsOpen ? "▲ 收起功能" : "⚙ 展开功能";
+}
+
+// 打开文件选择器
+function openFile(){ 
+    document.getElementById("fileInput").click(); 
+}
+
+// 读取文件（保留换行，优化错误提示）
+document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const name = file.name.toLowerCase();
+    const fr = new FileReader();
+    
+    // 显示加载提示
+    reader.innerText = "正在解析文件，请稍候...";
+    
+    if(name.endsWith(".wps")||name.endsWith(".docx")||name.endsWith(".doc")){
+        fr.readAsArrayBuffer(file);
+        fr.onload=ev=>{
+            mammoth.extractRawText({arrayBuffer:ev.target.result})
+            .then(res=>{
+                reader.innerText = res.value || "文件内容为空";
+                applyColor(); 
+                countWord();
+                findCountDom.innerText = 0;
+            }).catch(err=>{
+                console.error('解析错误:', err);
+                reader.innerText = `解析失败：${err.message || '不支持的文件格式或文件已损坏'}`;
+            });
+        };
+    }else{
+        fr.readAsText(file, 'utf-8');
+        fr.onload=ev=>{
+            reader.innerText = ev.result || "文件内容为空";
+            applyColor(); 
+            countWord();
+            findCountDom.innerText = 0;
+        };
+        fr.onerror = () => {
+            reader.innerText = "解析失败：文件编码格式不支持，请尝试UTF-8编码的TXT文件";
+        };
+    }
+});
+
+// 保存文件（优化命名规则）
+function saveLocal(){
+    const text = reader.innerText;
+    if(!text.trim()) return alert("⚠ 文档内容为空，无需保存");
+    
+    const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+    const a = document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    
+    // 优化文件名：使用文档前10个字符作为名称
+    let fileName = text.trim().substring(0,10).replace(/[\/:*?"<>|]/g,"_") || "文档";
+    a.download=`${fileName}_${new Date().getTime()}.txt`;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    alert("✅ 保存成功\n文件可在WPS/记事本中打开");
+}
+
+// 打印文档
+function printDoc(){
+    if(!reader.innerText.trim()) return alert("⚠ 文档内容为空，无法打印");
+    window.print();
+}
+
+// 文本对齐
+function alignLeft(){reader.style.textAlign="left";}
+function alignCenter(){reader.style.textAlign="center";}
+function alignRight(){reader.style.textAlign="right";}
+
+// 字号调整（修复步长，增加范围限制）
+function fontUp(){
+    if(fontSize < 48){
+        fontSize += 1;
+        reader.style.fontSize = fontSize + "px";
+    }
+}
+function fontDown(){
+    if(fontSize > 12){
+        fontSize -= 1;
+        reader.style.fontSize = fontSize + "px";
+    }
+}
+
+// 切换深色模式
+function toggleDark(){
+    darkMode = !darkMode;
+    document.body.className = currentBg + (darkMode ? " dark" : "");
+    applyColor();
+}
+
+// 切换编辑模式（优化体验）
+function switchEdit(){
+    editStatus = !editStatus;
+    reader.contentEditable = editStatus;
+    editBtn.innerText = editStatus ? "✏️" : "📝";
+    
+    // 编辑模式自动聚焦
+    if(editStatus){
+        reader.focus();
+        alert("✅ 编辑模式已开启\n可直接修改文档内容");
+    }else{
+        alert("❌ 编辑模式已关闭\n内容将无法修改");
+    }
+    countWord();
+}
+
+// 文字纠错
+function checkErrorWords(){
+    const originalText = reader.innerText;
+    if(!originalText.trim()) return alert("⚠ 文档内容为空，无需纠错");
+    
+    const fix = {
+        "即然":"既然","既使":"即使","渡过":"度过","年青":"年轻",
+        "决对":"绝对","以经":"已经","在次":"再次","到至":"导致",
+        "好象":"好像","题纲":"提纲","必竟":"毕竟","按装":"安装",
+        "甘败下风":"甘拜下风","自抱自弃":"自暴自弃","一愁莫展":"一筹莫展"
+    };
+    
+    let newText = originalText;
+    let cnt = 0;
+    
+    for(let k in fix){
+        const r = new RegExp(k, "g");
+        const matches = newText.match(r);
+        if(matches){
+            cnt += matches.length;
+            newText = newText.replace(r, fix[k]);
+        }
+    }
+    
+    reader.innerText = newText;
+    applyColor(); 
+    countWord();
+    alert(cnt > 0 ? `✅ 已修正 ${cnt} 处常见错别字` : "✅ 未发现常见错别字");
+}
+
+// 查找文本（修复HTML标签问题，增加计数）
+function findText(){
+    const keyword = document.getElementById("findVal").value.trim();
+    if(!keyword) return alert("⚠ 请输入查找内容");
+    
+    // 先清除之前的高亮
+    reader.innerHTML = reader.innerText;
+    
+    const text = reader.innerText;
+    const reg = new RegExp(keyword.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g");
+    const matches = text.match(reg);
+    const count = matches ? matches.length : 0;
+    
+    findCountDom.innerText = count;
+    
+    if(count > 0){
+        // 使用span包裹高亮内容，避免破坏HTML结构
+        const highlighted = text.replace(reg, match => 
+            `<span class="highlight">${match}</span>`
+        );
+        reader.innerHTML = highlighted;
+        
+        // 滚动到第一个匹配项
+        const firstHighlight = reader.querySelector('.highlight');
+        if(firstHighlight) firstHighlight.scrollIntoView({behavior: 'smooth', block: 'center'});
+        
+        alert(`✅ 找到 ${count} 个匹配项`);
+    }else{
+        alert("❌ 未找到匹配内容");
+    }
+}
+
+// 替换全部文本（修复高亮残留）
+function replaceAll(){
+    const findVal = document.getElementById("findVal").value.trim();
+    const replaceVal = document.getElementById("replaceVal").value;
+    
+    if(!findVal) return alert("⚠ 请输入查找内容");
+    
+    // 清除高亮
+    reader.innerHTML = reader.innerText;
+    
+    const reg = new RegExp(findVal.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"), "g");
+    const originalText = reader.innerText;
+    const newText = originalText.replace(reg, replaceVal);
+    const count = (originalText.match(reg) || []).length;
+    
+    reader.innerText = newText;
+    applyColor(); 
+    countWord();
+    findCountDom.innerText = 0;
+    
+    alert(count > 0 ? `✅ 已替换 ${count} 处内容` : "❌ 未找到可替换的内容");
+}
+
+// 初始化
+window.onload=()=>{
+    applyColor();
+    countWord();
+    reader.style.fontSize = fontSize + "px";
+    reader.style.textAlign = "left";
+    
+    // 初始化自定义颜色选择器样式
+    document.getElementById('customColor').value = textColor;
+    
+    // 监听页面大小变化
+    window.addEventListener('resize', () => {
+        reader.style.height = `${document.querySelector('.main-wrap').clientHeight - 200}px`;
+    });
+};
+</script>
+</body>
+</html>
