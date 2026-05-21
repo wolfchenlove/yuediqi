@@ -6,9 +6,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#2E86AB">
-    <title>艺愈阅读器｜最终稳定版</title>
+    <title>艺愈阅读器｜纯净本地版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
         html,body{height:100%;overflow:hidden;-webkit-font-smoothing:antialiased;}
@@ -20,7 +19,7 @@
         .main-body{flex:1;display:flex;flex-direction:column;overflow:hidden;}
         .main-wrap{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0;}
         .settings{max-height:0;overflow:hidden;background:#fff;transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);border-bottom:1px solid #eee;}
-        .settings.open{max-height:380px;}
+        .settings.open{max-height:320px;}
         .toggle-set{width:100%;text-align:center;padding:12px;background:#fff;border:none;font-size:15px;color:#2E86AB;border-bottom:1px solid #eee;cursor:pointer;}
         .btn-row{display:flex;flex-wrap:wrap;gap:8px;padding:12px 10px;justify-content:center;}
         .btn{width:46px;height:46px;border:none;border-radius:14px;background:#f5f7fa;color:#2E86AB;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
@@ -33,22 +32,21 @@
         select{height:40px;padding:0 12px;border-radius:10px;border:1px solid #ddd;flex:1;min-width:120px;background:#fff;}
         .search-box{padding:10px;background:#fff;display:flex;gap:8px;align-items:center;border-bottom:1px solid #eee;}
         .search-box input{flex:1;height:42px;padding:0 10px;border-radius:10px;border:1px solid #ddd;}
-        .search-btn{width:42px;height:42px;border-radius:10px;background:#f5f7;border:none;color:#2E86AB;}
+        .search-btn{width:42px;height:42px;border-radius:10px;background:#f5f7fa;border:none;color:#2E86AB;}
         .stat-bar{padding:8px;text-align:center;font-size:13px;color:#666;background:#fff;border-bottom:1px solid #eee;}
         .read-box{flex:1;padding:20px 16px;line-height:2.2;font-size:17px;white-space:pre-wrap !important;word-wrap:break-word !important;overflow-wrap:break-word !important;user-select:text;outline:none;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;background:transparent;}
         .read-box::-webkit-scrollbar{width:6px;}
-        .read-box::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.1);border-radius:3px;}
+        .read-box::-webkit-scrollbar-thumb{background:rgba(0,0,0.1);border-radius:3px;}
         .dark{background:#121212 !important;color:#e0e0e0;}
-        .dark .header,.dark .settings,.dark .search-box,.dark .stat-bar{background:#1e1e1e !important;border-color:#333;}
+        .dark .header,.dark .settings,.dark .search-box,.dark .stat{background:#1e1e1e !important;border-color:#333;}
         .dark .btn{background:#2a2a2a;color:#81bfff;}
         .highlight{background:#ffeb3b;color:#000;border-radius:2px;padding:0 2px;}
         .dark .highlight{background:#ffc107;color:#000;}
         #fileInput{display:none;}
-        #canvasTemp{position:absolute;top:-9999px;left:-9999px;z-index:-9999;}
     </style>
 </head>
 <body class="bg-white">
-<div class="header">艺愈阅读器｜最终稳定版</div>
+<div class="header">艺愈阅读器｜纯净本地版</div>
 
 <div class="main-body">
     <div class="main-wrap">
@@ -57,22 +55,22 @@
             <div class="btn-row">
                 <button class="btn" onclick="openFile()">📂</button>
                 <button class="btn green" onclick="saveLocal()">💾</button>
-                <button class="btn" onclick="saveImage()">🖼️</button>
                 <button class="btn" onclick="shareWechat()">📤</button>
+                <button class="btn" onclick="printDoc()">🖨</button>
                 <button class="btn" onclick="fontUp()">+</button>
                 <button class="btn" onclick="fontDown()">-</button>
                 <button class="btn" onclick="toggleDark()">🌙</button>
                 <button class="btn" onclick="alignLeft()">◀</button>
                 <button class="btn" onclick="alignCenter()">≡</button>
                 <button class="btn" onclick="alignRight()">▶</button>
-                <button class="btn" onclick="switchEdit()" id="editBtn">✏️</button>
+                <button class="btn" onclick="switchEdit()" id="editBtn">📝</button>
                 <button class="btn" onclick="checkErrorWords()">✓</button>
             </div>
             <div class="set-row">
                 <select id="fontSelect"></select>
                 <div class="color-btn active" style="background:#333" onclick="setText('#333', this)"></div>
                 <div class="color-btn" style="background:#666" onclick="setText('#666', this)"></div>
-                <div class="color-btn" style="background:#d32f2f" onclick="setText('#d32f2f', this)"></div>
+                <div class="color-btn" style="background:#d32f2f" onclick="setText('#d32f2f')"></div>
                 <input type="color" id="customColor" onchange="setText(this.value)" value="#333">
                 <div class="color-btn active" style="background:#f9f9f9" onclick="setBg('bg-white')"></div>
                 <div class="color-btn" style="background:#e6f5e6" onclick="setBg('bg-green')"></div>
@@ -90,17 +88,16 @@
         <div class="stat-bar">字数：<span id="wordCount">0</span></div>
 
         <div class="read-box" id="reader" contenteditable="false">
-欢迎使用艺愈阅读器｜最终稳定版
-✅ 安卓全机型保存图片
-✅ 微信直接分享
-✅ 本地文件直接打开
-✅ WPS可打开、顺滑阅读
+欢迎使用艺愈阅读器
+✅ 本地保存txt（安卓下载目录）
+✅ 微信分享、打印
+✅ 完美换行、不乱码
+✅ 安卓/苹果顺滑
         </div>
     </div>
 </div>
 
-<input type="file" id="fileInput" accept=".wps,.docx,.doc,.txt">
-<canvas id="canvasTemp"></canvas>
+<input type="file" id="fileInput" accept=".docx,.doc,.txt">
 
 <script>
 const fonts = ["系统默认","思源黑体","苹方","Roboto","黑体","宋体","楷体"];
@@ -110,7 +107,6 @@ const wordCountDom = document.getElementById("wordCount");
 const settings = document.getElementById("settings");
 const toggleBtn = document.getElementById("toggleBtn");
 const editBtn = document.getElementById("editBtn");
-const canvasTemp = document.getElementById("canvasTemp");
 
 let fontSize = 17;
 let darkMode = false;
@@ -147,7 +143,7 @@ function countWord(){
 function toggleSettings(){
     settingsOpen = !settingsOpen;
     if(settingsOpen){
-        settings.style.maxHeight = "380px";
+        settings.style.maxHeight = "320px";
         toggleBtn.innerText = "▲ 收起功能";
     }else{
         settings.style.maxHeight = "0";
@@ -186,7 +182,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
     if(!file) return;
     const name = file.name.toLowerCase();
     const fr = new FileReader();
-    if(name.endsWith(".wps")||name.endsWith(".docx")||name.endsWith(".doc")){
+    if(name.endsWith(".docx")||name.endsWith(".doc")){
         fr.readAsArrayBuffer(file);
         fr.onload=ev=>{
             mammoth.extractRawText({arrayBuffer:ev.target.result})
@@ -206,7 +202,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
     }
 });
 
-// 本地保存txt（安卓下载目录）
+// 安卓直接保存txt到本地（修复不生效）
 function saveLocal(){
     const text = reader.innerText;
     if(!text.trim()){
@@ -217,56 +213,23 @@ function saveLocal(){
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
     a.download = "文档_"+Date.now()+".txt";
+    a.rel = "noopener";
     document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    alert("✅ 已保存到本地，WPS可打开");
-}
-
-// 修复：安卓全机型保存图片
-function saveImage(){
-    if(!reader.innerText.trim()){
-        alert("⚠ 请先输入内容");
-        return;
-    }
-    alert("📸 正在生成图片...");
-    const oldText = reader.innerText;
-    const tempDiv = document.createElement("div");
-    tempDiv.style.position = "absolute";
-    tempDiv.style.top = "-9999px";
-    tempDiv.style.left = "-9999px";
-    tempDiv.style.width = reader.clientWidth + "px";
-    tempDiv.style.padding = "20px 16px";
-    tempDiv.style.lineHeight = "2.2";
-    tempDiv.style.fontSize = fontSize + "px";
-    tempDiv.style.color = textColor;
-    tempDiv.style.background = darkMode ? "#1e1e1e" : "#fff";
-    tempDiv.style.whiteSpace = "pre-wrap";
-    tempDiv.innerText = reader.innerText;
-    document.body.appendChild(tempDiv);
-
-    html2canvas(tempDiv, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: darkMode ? "#1e1e1e" : "#fff",
-        logging: false
-    }).then(canvas=>{
-        const a = document.createElement("a");
-        a.href = canvas.toDataURL("image/png");
-        a.download = "图片_"+Date.now()+".png";
-        document.body.appendChild(a);
+    setTimeout(()=>{
         a.click();
         document.body.removeChild(a);
-        alert("✅ 图片已保存到相册");
-    }).catch(e=>{
-        alert("❌ 保存失败："+e.message);
-    }).finally(()=>{
-        document.body.removeChild(tempDiv);
-    });
+        setTimeout(()=>URL.revokeObjectURL(a.href), 500);
+    }, 50);
+    alert("✅ 已保存到本地下载目录");
 }
 
-// 修复：微信直接分享
+// 打印
+function printDoc(){
+    if(!reader.innerText.trim()) return alert("⚠ 暂无内容");
+    window.print();
+}
+
+// 微信分享
 function shareWechat(){
     const text = reader.innerText.trim();
     if(!text){
@@ -274,11 +237,9 @@ function shareWechat(){
         return;
     }
     if(navigator.share){
-        navigator.share({title:"艺愈阅读器分享",text:text}).catch(()=>{});
+        navigator.share({title:"分享",text:text}).catch(()=>{});
     }else{
-        navigator.clipboard.writeText(text).then(()=>{
-            alert("✅ 已复制，打开微信粘贴发送");
-        });
+        navigator.clipboard.writeText(text).then(()=>alert("✅ 已复制，打开微信粘贴"));
     }
 }
 
