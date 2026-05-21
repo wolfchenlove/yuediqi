@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#2E86AB">
-    <title>艺愈阅读器｜全能版</title>
+    <title>艺愈阅读器｜安卓稳定版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
@@ -26,20 +26,21 @@
         .btn{width:46px;height:46px;border:none;border-radius:14px;background:#f5f7fa;color:#2E86AB;font-size:18px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
         .btn.green{background:#e6f7ef;color:#27ae60;}
         .btn:active{background:#dcdfe6;transform:scale(0.98);}
-        .set-row{display:flex;align-items:center;padding:10px 10px 12px;gap:12px;flex-wrap:wrap;justify-content:center;}
+        .set-row{display:flex;align-items:center;padding:10px 12px;gap:12px;flex-wrap:wrap;justify-content:center;}
         .color-btn{width:40px;height:40px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.1);cursor:pointer;}
         .color-btn.active{box-shadow:0 0 0 2px #2E86AB;}
         #customColor{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;padding:0;appearance:none;}
         select{height:40px;padding:0 12px;border-radius:10px;border:1px solid #ddd;flex:1;min-width:120px;background:#fff;}
         .search-box{padding:10px;background:#fff;display:flex;gap:8px;align-items:center;border-bottom:1px solid #eee;}
         .search-box input{flex:1;height:42px;padding:0 12px;border-radius:10px;border:1px solid #ddd;}
-        .search-btn{width:42px;height:42px;border-radius:10px;background:#f5f7fa;border:none;color:#2E86AB;}
+        .search-btn{width:42px;height:42px;border-radius:10px;background:#f5f7;border:none;color:#2E86AB;}
         .stat-bar{padding:8px;text-align:center;font-size:13px;color:#666;background:#fff;border-bottom:1px solid #eee;}
+        /* 阅读区：只生成这块的图片 */
         .read-box{flex:1;padding:20px 16px;line-height:2.2;font-size:17px;white-space:pre-wrap !important;word-wrap:break-word !important;overflow-wrap:break-word !important;user-select:text;outline:none;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;min-height:0;background:transparent;}
         .read-box::-webkit-scrollbar{width:6px;}
         .read-box::-webkit-scrollbar-thumb{background:rgba(0,0,0.1);border-radius:3px;}
         .dark{background:#121212 !important;color:#e0e0e0;}
-        .dark .header,.dark .settings,.dark .search-box,.dark .stat-bar{background:#1e1e1e !important;border-color:#333;}
+        .dark .header,.dark .settings,.dark .search-box,.dark .stat{background:#1e1e1e !important;border-color:#333;}
         .dark .btn{background:#2a2a2a;color:#81bfff;}
         .highlight{background:#ffeb3b;color:#000;border-radius:2px;padding:0 2px;}
         .dark .highlight{background:#ffc107;color:#000;}
@@ -47,7 +48,8 @@
     </style>
 </head>
 <body class="bg-white">
-<div class="header">艺愈阅读器｜全能版</div>
+<div class="header">艺愈阅读器｜安卓稳定版</div>
+
 <div class="main-body">
     <div class="main-wrap">
         <button class="toggle-set" onclick="toggleSettings()">⚙ 展开功能</button>
@@ -70,29 +72,34 @@
                 <select id="fontSelect"></select>
                 <div class="color-btn active" style="background:#333" onclick="setText('#333', this)"></div>
                 <div class="color-btn" style="background:#666" onclick="setText('#666', this)"></div>
-                <div class="color-btn" style="background:#d32f2f" onclick="setText('#d32f2f', this)"></div>
-                <input type="color" id="customColor" onchange="setText(this.value, this)" value="#333">
-                <div class="color-btn" style="background:#f9f9f9" onclick="setBg('bg-white', this)"></div>
-                <div class="color-btn" style="background:#e6f5e6" onclick="setBg('bg-green', this)"></div>
-                <div class="color-btn" style="background:#e6f2f8" onclick="setBg('bg-blue', this)"></div>
+                <div class="color-btn" style="background:#d32f2f" onclick="setText('#d32f2f')"></div>
+                <input type="color" id="customColor" onchange="setText(this.value)" value="#333">
+                <div class="color-btn" style="background:#f9f9f9" onclick="setBg('bg-white')"></div>
+                <div class="color-btn" style="background:#e6f5e6" onclick="setBg('bg-green')"></div>
+                <div class="color-btn" style="background:#e6f2f8" onclick="setBg('bg-blue')"></div>
             </div>
         </div>
+
         <div class="search-box">
             <input type="text" id="findVal" placeholder="查找内容" autocomplete="off">
             <input type="text" id="replaceVal" placeholder="替换为" autocomplete="off">
             <button class="search-btn" onclick="findText()">🔍</button>
             <button class="search-btn" onclick="replaceAll()">🔄</button>
         </div>
+
         <div class="stat-bar">字数：<span id="wordCount">0</span></div>
+
         <div class="read-box" id="reader" contenteditable="false">
-欢迎使用艺愈阅读器｜全能版
-✅ 微信转发
-✅ 一键生成图片
-✅ 本地文件直接打开
-✅ WPS可打开、顺滑阅读
+欢迎使用艺愈阅读器
+✅ 安卓全机型稳定
+✅ 生成图=阅读区
+✅ 微信选好友分享
+✅ 本地保存正常
+✅ WPS可打开
         </div>
     </div>
 </div>
+
 <input type="file" id="fileInput" accept=".wps,.docx,.doc,.txt">
 
 <script>
@@ -133,19 +140,11 @@ function countWord(){
     const t = reader.innerText.replace(/\s/g,"");
     wordCountDom.innerText = t.length;
 }
-function setBg(cls, el){
-    document.querySelectorAll('.color-btn').forEach(b=>{
-        if(b.style.background.includes('f9f9f9')||b.style.background.includes('e6f5e6')||b.style.background.includes('e6f2f8')) b.classList.remove('active');
-    });
-    if(el) el.classList.add('active');
+function setBg(cls){
     currentBg = cls;
-    document.body.className = cls + (darkMode ? " dark" : "");
+    document.body.className = cls + (darkMode ? "dark" : "");
 }
-function setText(c, el){
-    document.querySelectorAll('.color-btn').forEach(b=>{
-        if(!b.style.background.includes('f9f9f9')&&!b.style.background.includes('e6f5e6')&&!b.style.background.includes('e6f2f8')) b.classList.remove('active');
-    });
-    if(el) el.classList.add('active');
+function setText(c){
     textColor = c;
     document.getElementById('customColor').value = c;
     applyColor();
@@ -157,7 +156,6 @@ function toggleSettings(){
 }
 function openFile(){ document.getElementById("fileInput").click(); }
 
-// 读取本地文件（直接打开）
 document.getElementById('fileInput').addEventListener('change', e => {
     const file = e.target.files[0];
     if(!file) return;
@@ -181,42 +179,62 @@ document.getElementById('fileInput').addEventListener('change', e => {
     }
 });
 
-// 1. 本地保存（安卓/苹果直接保存）
+// 1. 本地保存（安卓全机型正常）
 function saveLocal(){
     const text = reader.innerText;
+    if(!text.trim()) return alert("⚠ 内容为空");
     const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
     const a = document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="文档_"+Date.now()+".txt";
+    a.href = URL.createObjectURL(blob);
+    a.download = "文档_"+Date.now()+".txt";
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-    alert("✅ 已保存到本地，WPS可直接打开");
+    setTimeout(()=>{
+        document.body.removeChild(a);
+        URL.revokeObjectURL(a.href);
+    }, 1000);
+    alert("✅ 已保存，WPS可打开");
 }
 
-// 2. 一键生成图片
+// 2. 生成图片：只截取阅读区
 function saveImage(){
-    if(!reader.innerText.trim()) return alert("⚠ 请先输入内容");
-    html2canvas(reader,{scale:2,useCORS:true,background:dark?"#1e1e1e":"#fff"}).then(canvas=>{
-        const a=document.createElement("a");
-        a.href=canvas.toDataURL("image/png");
-        a.download="文档图片_"+Date.now()+".png";
+    const text = reader.innerText.trim();
+    if(!text) return alert("⚠ 内容为空");
+    alert("📸 生成中...");
+    // 用reader作为目标，只截阅读区
+    html2canvas(reader, {
+        scale: 2,
+        backgroundColor: dark ? "#1e1e1e" : "transparent",
+        useCORS: true,
+        logging: false
+    }).then(canvas=>{
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = "阅读图_"+Date.now()+".png";
+        document.body.appendChild(a);
         a.click();
-        alert("✅ 图片已生成并保存");
-    });
+        document.body.removeChild(a);
+        alert("✅ 图片已保存");
+    }).catch(e=>alert("❌ 生成失败"));
 }
 
-// 3. 微信转发（安卓/苹果通用）
+// 3. 微信分享：安卓原生（可选好友/群）
 function shareWechat(){
-    const text=reader.innerText.trim();
-    if(!text) return alert("⚠ 请先输入内容");
+    const text = reader.innerText.trim();
+    if(!text) return alert("⚠ 内容为空");
+    // 安卓系统分享，能选微信
     if(navigator.share){
-        navigator.share({title:"艺愈阅读器分享",text:text}).catch(e=>alert("分享已取消"));
+        navigator.share({
+            title: "阅读分享",
+            text: text
+        }).catch(e=>{
+            if(e.message !== "Share canceled") alert("❌ 分享失败");
+        });
     }else{
-        const url="https://service.weibo.com/share/share.php?title="+encodeURIComponent(text)+"&url="+encodeURIComponent(window.location.href);
-        window.open(url,"_blank");
-        alert("✅ 已打开微信分享页面");
+        // 微信内置浏览器：复制+提示
+        navigator.clipboard.writeText(text).then(()=>{
+            alert("✅ 已复制！打开微信→选好友→粘贴发送");
+        });
     }
 }
 
